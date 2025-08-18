@@ -14,8 +14,6 @@ Install prerequisites
 
 Install the following software tools:
 
-* On Windows, the `latest Microsoft Visual C++ Redistributable version`_.
-
 * The latest version of nRF Util, a unified command-line utility for Nordic Semiconductor products.
   Check `operating system versions that support this tool`_ and download the installer - `nRF Util Downloads`_.
 
