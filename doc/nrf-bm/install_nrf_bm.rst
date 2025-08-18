@@ -14,30 +14,28 @@ Install prerequisites
 
 Install the following software tools:
 
-* The latest version of nRF Util, a unified command-line utility for Nordic Semiconductor products.
-  Check `operating system versions that support this tool`_ and download the installer - `nRF Util Downloads`_.
+* `nRF Connect for Desktop`_
 
-  * After downloading the nRF Util executable, move it to a directory that is in the system :envvar:`PATH`.
-  * On macOS and Linux, the downloaded file also needs to be given execute permission by typing `chmod +x nrfutil` or by checking the checkbox in the file properties.
+  * Running `nRF Connect for Desktop`_ has the following additional requirements:
 
-* The nRF Util ``device`` command.
-  This command allows you to perform various operations on Nordic devices.
+    * The |jlink_ver| of SEGGER J-Link.
+      Download it from the `J-Link Software and Documentation Pack`_ page.
+      On Windows, the driver comes bundled with nRF Connect for Desktop.
+      On macOS and Linux, you must install the driver manually. Download the installer for your platform from SEGGER J-Link Software.
+  
+  * After installation, type **Quick Start** in the :guilabel:`Search...` box.
+  * In the results, select the :guilabel:`Quick Start` app. Click :guilabel:`Install`, then click :guilabel:`Open`.
+  * The Quick Start app opens.
+  * On the :guilabel:`Select a kit` page, select your :guilabel:`nRF54L15 DK`, then click :guilabel:`Continue`.
+  * A wizard guides you through the initial steps for using your DK. Review the content, then click :guilabel:`Continue`.
+  * At the :guilabel:`Develop` step, select :guilabel:`VS Code IDE`, then click :guilabel:`Continue`. The :guilabel:`Open VS Code` page appears.
 
-   .. code-block:: console
+  .. important::
 
-      nrfutil install device
+     Click :guilabel:`Skip`. Do not click :guilabel:`Open VS Code with extension`.
 
-  For the complete list of functionalities offered by this command, type:
-
-   .. code-block:: console
-
-      nrfutil device --help
-
-* The |jlink_ver| of SEGGER J-Link.
-  Download it from the `J-Link Software and Documentation Pack`_ page.
-
-   * If you are using Windows, make sure to select :guilabel:`Install legacy USB Driver for J-Link` during the installation.
-     The driver is required for the support of Nordic Semiconductor devices.
+  * At the :guilabel:`Apps` step, select :guilabel:`Serial Terminal`, click :guilabel:`Install`, then click :guilabel:`Skip`.
+  * At the :guilabel:`Finish` step, click :guilabel:`Close`.
 
 * |VSC|:
 
