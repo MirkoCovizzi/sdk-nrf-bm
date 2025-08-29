@@ -15,25 +15,55 @@ Requirements
 
 The sample supports the following development kits:
 
-.. list-table::
-   :header-rows: 1
+.. tabs::
 
-   * - Hardware platform
-     - PCA
-     - SoftDevice
-     - Board target
-   * - `nRF54L15 DK`_
-     - PCA10156
-     - S115
-     - bm_nrf54l15dk/nrf54l15/cpuapp/s115_softdevice
-   * - `nRF54L15 DK`_ (emulating nRF54L10)
-     - PCA10156
-     - S115
-     - bm_nrf54l15dk/nrf54l10/cpuapp/s115_softdevice
-   * - `nRF54L15 DK`_ (emulating nRF54L05)
-     - PCA10156
-     - S115
-     - bm_nrf54l15dk/nrf54l05/cpuapp/s115_softdevice
+   .. group-tab:: Simple board variants
+
+      The following board variants do **not** have DFU capabilities.
+
+      .. list-table::
+         :header-rows: 1
+
+         * - Hardware platform
+           - PCA
+           - SoftDevice
+           - Board target
+         * - `nRF54L15 DK`_
+           - PCA10156
+           - S115
+           - bm_nrf54l15dk/nrf54l15/cpuapp/s115_softdevice
+         * - `nRF54L15 DK`_ (emulating nRF54L10)
+           - PCA10156
+           - S115
+           - bm_nrf54l15dk/nrf54l10/cpuapp/s115_softdevice
+         * - `nRF54L15 DK`_ (emulating nRF54L05)
+           - PCA10156
+           - S115
+           - bm_nrf54l15dk/nrf54l05/cpuapp/s115_softdevice
+
+   .. group-tab:: MCUboot board variants
+
+      The following board variants have DFU capabilities.
+
+      .. list-table::
+         :header-rows: 1
+
+         * - Hardware platform
+           - PCA
+           - SoftDevice
+           - Board target
+         * - `nRF54L15 DK`_
+           - PCA10156
+           - S115
+           - bm_nrf54l15dk/nrf54l15/cpuapp/s115_softdevice/mcuboot
+         * - `nRF54L15 DK`_ (emulating nRF54L10)
+           - PCA10156
+           - S115
+           - bm_nrf54l15dk/nrf54l10/cpuapp/s115_softdevice/mcuboot
+         * - `nRF54L15 DK`_ (emulating nRF54L05)
+           - PCA10156
+           - S115
+           - bm_nrf54l15dk/nrf54l05/cpuapp/s115_softdevice/mcuboot
 
 Overview
 ********
@@ -71,8 +101,16 @@ To test the NUS sample with the :ref:`LPUARTE <driver_lpuarte>` driver in loopba
 It is also possible to test between two devices running NUS with LPUART by connecting the above mentioned pins and ``GND`` between the devices.
 Make sure the ``REQ`` pin on one board is connected to the ``RDY`` on the other board, and vice versa.
 
+.. note::
+
+   With the LPUARTE configuration, the console is used only for application logging and not for NUS data.
+   Output on the NUS TX line will be handled as input on the NUS RX line on the same device (loopback) or as NUS input to the other device (when using two devices).
+
 Testing
 =======
+
+The following steps are valid for the default sample configuration.
+It does not use the Low Power UARTE (LPUARTE) configuration fragment.
 
 1. Compile and program the application.
 #. Connect the device to the computer to access UART 0 and UART 1.

@@ -11,6 +11,7 @@
 .. ### Source: docs.nordicsemi
 
 .. _`nRF54L15 DK`: https://docs.nordicsemi.com/bundle/ncs-latest/page/zephyr/boards/nordic/nrf54l15dk/doc/index.html#nrf54l15dk-nrf54l15
+.. _`nRF54L15 DK v0.9.3`: https://docs.nordicsemi.com/bundle/comp_matrix_nrf54l15/page/COMP/nrf54l15/nrf54l15_ic_rev_comp_with_dev_hw.html
 
 .. ### Installation
 
@@ -58,6 +59,7 @@
 .. _`DTS`: https://docs.zephyrproject.org/latest/build/dts/index.html
 .. _`System reset`: https://docs.zephyrproject.org/latest/services/device_mgmt/smp_groups/smp_group_0.html#system-reset
 .. _`Image tool`: https://docs.mcuboot.com/imgtool.html
+.. _`Vector table requirement`: https://developer.arm.com/documentation/100235/0002/sqf1486724325622
 
 .. ### Release notes
 
@@ -69,3 +71,9 @@
 .. _`nRF54L10`: https://docs.nordicsemi.com/category/nRF54L10-category
 .. _`nRF54L05`: https://docs.nordicsemi.com/category/nRF54L05-category
 .. _`nrfx documentation`: https://docs.nordicsemi.com/bundle/nrfx-apis-latest/page/index.html
+
+.. ### Release notes and migration
+
+.. _`nrfx migration guides`: https://github.com/NordicSemiconductor/nrfx/wiki/nrfx-2.11.0-to-3.0.0
+.. _`Migration notes - nRF5 SDK to nRF Connect SDK Bare Metal option`: https://docs.nordicsemi.com/bundle/nrf-bm-latest/page/migration/nrf5_bm_migration.html
+.. _`S115 9.0.0-3.prototype API reference`: https://docs.nordicsemi.com/bundle/s115_9.0.0-3.prototype_api/page/topics.html

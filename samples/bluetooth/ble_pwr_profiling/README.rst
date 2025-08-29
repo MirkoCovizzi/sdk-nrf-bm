@@ -16,25 +16,55 @@ Requirements
 
 The sample supports the following development kits:
 
-.. list-table::
-   :header-rows: 1
+.. tabs::
 
-   * - Hardware platform
-     - PCA
-     - SoftDevice
-     - Board target
-   * - `nRF54L15 DK`_
-     - PCA10156
-     - S115
-     - bm_nrf54l15dk/nrf54l15/cpuapp/s115_softdevice
-   * - `nRF54L15 DK`_ (emulating nRF54L10)
-     - PCA10156
-     - S115
-     - bm_nrf54l15dk/nrf54l10/cpuapp/s115_softdevice
-   * - `nRF54L15 DK`_ (emulating nRF54L05)
-     - PCA10156
-     - S115
-     - bm_nrf54l15dk/nrf54l05/cpuapp/s115_softdevice
+   .. group-tab:: Simple board variants
+
+      The following board variants do **not** have DFU capabilities.
+
+      .. list-table::
+         :header-rows: 1
+
+         * - Hardware platform
+           - PCA
+           - SoftDevice
+           - Board target
+         * - `nRF54L15 DK`_
+           - PCA10156
+           - S115
+           - bm_nrf54l15dk/nrf54l15/cpuapp/s115_softdevice
+         * - `nRF54L15 DK`_ (emulating nRF54L10)
+           - PCA10156
+           - S115
+           - bm_nrf54l15dk/nrf54l10/cpuapp/s115_softdevice
+         * - `nRF54L15 DK`_ (emulating nRF54L05)
+           - PCA10156
+           - S115
+           - bm_nrf54l15dk/nrf54l05/cpuapp/s115_softdevice
+
+   .. group-tab:: MCUboot board variants
+
+      The following board variants have DFU capabilities.
+
+      .. list-table::
+         :header-rows: 1
+
+         * - Hardware platform
+           - PCA
+           - SoftDevice
+           - Board target
+         * - `nRF54L15 DK`_
+           - PCA10156
+           - S115
+           - bm_nrf54l15dk/nrf54l15/cpuapp/s115_softdevice/mcuboot
+         * - `nRF54L15 DK`_ (emulating nRF54L10)
+           - PCA10156
+           - S115
+           - bm_nrf54l15dk/nrf54l10/cpuapp/s115_softdevice/mcuboot
+         * - `nRF54L15 DK`_ (emulating nRF54L05)
+           - PCA10156
+           - S115
+           - bm_nrf54l15dk/nrf54l05/cpuapp/s115_softdevice/mcuboot
 
 Optionally, you can use the `Power Profiler Kit II (PPK2)`_ for power profiling and optimizing your configuration.
 You can also use your proprietary solution for measuring the power consumption.
@@ -121,6 +151,11 @@ LED 0:
    When you use buttons to wake up the SoC from the system off state, the button state is read in the main thread.
    This causes a delay between the SoC wake up and button press processing.
    If you want to start advertising on system start, you must keep pressing the button until you see a log message confirming the advertising start on the terminal.
+
+.. note::
+   The LED is disabled by default.
+   You can enable the LED by setting the :kconfig:option:`CONFIG_BLE_PWR_PROFILING_LED` Kconfig option.
+   Enabling the LED will increase the power consumption in active and low power mode by ~1.8 uA.
 
 Configuration
 *************

@@ -1,16 +1,16 @@
 .. _ug_dfu:
 
-Device Firmware Update (DFU)
-############################
+Running the DFU process
+#######################
 
-This guide provides an overview of the Device Firmware Update (DFU) capabilities in the |BMlong|.
+This user guide introduces basic information of the DFU and provides an example procedure for running it on your application.
 
 The DFU process in this SDK uses `MCUboot`_, a secure bootloader for 32-bit microcontrollers.
 MCUboot allows for safe firmware updates with minimal overhead.
 
-For more background information about the DFU process in |BMshort|, see <DFU design docs that will be added soon>.
-
 Firmware updates are transferred to a device using `MCUmgr`_, which has transports for Bluetooth Low Energy® and UART.
+
+More detailed information about specific concepts can be found in :ref:`dfu_memory_partitioning` and :ref:`ug_bootloader_keys` sections.
 
 Partition Configuration
 ***********************
@@ -36,7 +36,9 @@ The memory of your device must be partitioned appropriately to accommodate the b
 .. note::
    The sizes and configurations of slot0 and slot1 are asymmetrical.
 
-Refer to `Preparing the DFU-ready variant of your board`_ for an example of how to partition the memory using DTS.
+If you are not using a DK board target, refer to `Preparing the DFU-ready variant of your board`_ for an example of how to partition the memory using DTS.
+
+For more details on memory partitioning and related concepts, see :ref:`dfu_memory_partitioning`.
 
 .. _ug_dfu_firmware_loader:
 
@@ -73,20 +75,20 @@ When DFU is enabled in the application, the build system outputs the following f
 +--------------------------------------------------------------------------------+----------------------------------------------+--------------------------------+
 | File                                                                           | Description                                  | Programming scenario           |
 +================================================================================+==============================================+================================+
-| :file:`<build_dir>/firmware_loader/zephyr/zephyr.signed.hex`                   | Firmware Loader Image.                       | Programming board targets.     |
+| :file:`<build_dir>/firmware_loader/zephyr/zephyr.signed.hex`                   | Firmware loader image.                       | Programming board targets.     |
 +--------------------------------------------------------------------------------+----------------------------------------------+                                |
-| :file:`<build_dir>/mcuboot/zephyr/zephyr_signed_softdevice_flash_metadata.hex` | MCUBoot Image with SoftDevice.               |                                |
+| :file:`<build_dir>/mcuboot/zephyr/zephyr_signed_softdevice_flash_metadata.hex` | MCUBoot image with SoftDevice.               |                                |
 +--------------------------------------------------------------------------------+----------------------------------------------+                                |
-| :file:`<build_dir>/<app_name>/zephyr/zephyr.signed.hex`                        | Application Image.                           |                                |
+| :file:`<build_dir>/<app_name>/zephyr/zephyr.signed.hex`                        | Application image.                           |                                |
 +--------------------------------------------------------------------------------+----------------------------------------------+--------------------------------+
 | :file:`<build_dir>/production.hex`                                             | Production hex file, containing: MCUboot,    | Production device programming. |
 |                                                                                | firmware loader, SoftDevice and main         |                                |
 |                                                                                | application images.                          |                                |
 +--------------------------------------------------------------------------------+----------------------------------------------+--------------------------------+
-| :file:`<build_dir>/installer_softdevice_firmware_loader.bin`                   | Installer Update Image (DFU) with SoftDevice | DFU process for board targets. |
+| :file:`<build_dir>/installer_softdevice_firmware_loader.bin`                   | Installer Update image (DFU) with SoftDevice | DFU process for board targets. |
 |                                                                                | and firmware loader updates.                 |                                |
 +--------------------------------------------------------------------------------+----------------------------------------------+                                |
-| :file:`<build_dir>/<app_name>/zephyr/zephyr.signed.bin`                        | Application Update Image (DFU).              |                                |
+| :file:`<build_dir>/<app_name>/zephyr/zephyr.signed.bin`                        | Application Update image (DFU).              |                                |
 +--------------------------------------------------------------------------------+----------------------------------------------+--------------------------------+
 
 Running DFU in your application
@@ -102,6 +104,8 @@ The following is the workflow for testing the DFU mechanism on an application de
       * ``bm_nrf54l15dk/nrf54l15/cpuapp/s115_softdevice/mcuboot`` for nRF54L15 with S115 softdevice
 
    To test DFU with one of these default board targets, skip to the :ref:`ug_dfu_building_running` section.
+
+.. _ug_dfu_preparing_dfu_board:
 
 Preparing the DFU-ready variant of your board
 =============================================

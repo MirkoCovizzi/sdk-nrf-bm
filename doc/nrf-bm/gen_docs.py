@@ -13,6 +13,7 @@ sample_dir = os.path.join(script_dir, "sample")  # Path to the sample directory
 pdf_source_dir = os.path.abspath('../../components/softdevice/s115/')  # Path to the PDF source directory
 pdf_destination_dir = os.path.join(source_dir, 'pdfs')  # Destination directory within _static
 images_dir = os.path.join(script_dir, "images")  # Path to the images directory
+softdevice_rst_source = os.path.abspath('../../components/softdevice/s115/doc')
 
 # Install packages from requirements.txt
 if os.path.exists(requirements_path):
@@ -59,6 +60,13 @@ if os.path.exists(samples_dir):
                 os.makedirs(dest_dir, exist_ok=True)
                 shutil.copy2(os.path.join(root, file), dest_dir)
 
+# Copy SoftDevice RST files to the _build/source directory
+for file_name in os.listdir(softdevice_rst_source):
+    if file_name.endswith('.rst'):
+        src_file_path = os.path.join(softdevice_rst_source, file_name)
+        shutil.copy2(src_file_path, source_dir)
+        print(f"Copied {file_name} to {source_dir}")
+
 # Copy the _static directory
 dest_static_dir = os.path.join(source_dir, "_static")
 if os.path.exists(dest_static_dir):
@@ -97,6 +105,41 @@ for file_path in [conf_path, links_path, substitutions_path, shortcuts_path]:
     else:
         print(f"File not found: {file_path}")
         exit()
+
+# Prepare Doxygen XML output for Breathe
+
+# Save the current directory
+original_dir = os.getcwd()
+
+# Path to the Doxyfile
+doxyfile_dir = os.path.abspath('doxygen')
+doxyfile_path = os.path.join(doxyfile_dir, 'nrf-bm.doxyfile')
+
+# Change to the directory containing the Doxyfile
+os.chdir(doxyfile_dir)
+
+# Run Doxygen
+print("Running Doxygen...")
+call(['doxygen', 'nrf-bm.doxyfile'])
+
+# Change back to the original directory
+os.chdir(original_dir)
+
+# Path to the Doxygen output directory
+doxygen_output_dir = os.path.abspath('doxygen/doxygen/nrf-bm_api_xml')
+
+# Destination directory for Doxygen XML files within the Sphinx source
+doxygen_dest_dir = os.path.join(source_dir, 'doxygen/nrf-bm_api_xml')
+
+# Copy Doxygen XML output to the Sphinx source directory
+if os.path.exists(doxygen_output_dir):
+    if os.path.exists(doxygen_dest_dir):
+        shutil.rmtree(doxygen_dest_dir)  # Remove the existing directory if it exists
+    shutil.copytree(doxygen_output_dir, doxygen_dest_dir)
+    print(f"Copied Doxygen XML files to {doxygen_dest_dir}")
+else:
+    print("Doxygen output directory not found.")
+    exit()
 
 # Run Sphinx
 call(["sphinx-build", "-b", "html", source_dir, "_build/html"])

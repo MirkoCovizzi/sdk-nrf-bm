@@ -3,6 +3,13 @@
  *
  * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
  */
+
+/** @file
+ *
+ * @defgroup event_scheduler NCS Bare Metal Event Scheduler library
+ * @{
+ */
+
 #ifndef EVENT_SCHEDULER_H__
 #define EVENT_SCHEDULER_H__
 
@@ -51,10 +58,10 @@ struct event_scheduler_event {
  * @param data Event data.
  * @param len Event data length.
  *
- * @return 0 On success.
- * @return -EFAULT @p handler is @c NULL.
- * @return -EINVAL Invalid @p data and @p len combination.
- * @return -ENOMEM No memory to schedule this event.
+ * @retval 0 On success.
+ * @retval -EFAULT @p handler is @c NULL.
+ * @retval -EINVAL Invalid @p data and @p len combination.
+ * @retval -ENOMEM No memory to schedule this event.
  */
 int event_scheduler_defer(evt_handler_t handler, void *data, size_t len);
 
@@ -63,7 +70,7 @@ int event_scheduler_defer(evt_handler_t handler, void *data, size_t len);
  *
  * Process deferred events in the main thread.
  *
- * @return 0 On success.
+ * @retval 0 On success.
  */
 int event_scheduler_process(void);
 
@@ -72,3 +79,5 @@ int event_scheduler_process(void);
 #endif
 
 #endif /* EVENT_SCHEDULER_H__ */
+
+/** @} */
