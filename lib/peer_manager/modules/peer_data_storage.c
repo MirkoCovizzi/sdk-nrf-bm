@@ -204,7 +204,7 @@ static void peer_ids_load(void)
 	}
 }
 
-static void fds_evt_handler(fds_evt_t const *const p_fds_evt)
+static void bm_zms_evt_handler(bm_zms_evt_t const *p_evt)
 {
 	pm_evt_t pds_evt = {.peer_id = file_id_to_peer_id(p_fds_evt->write.file_id)};
 
@@ -280,7 +280,7 @@ uint32_t pds_init(void)
 	/* Check for re-initialization if debugging. */
 	NRF_PM_DEBUG_CHECK(!m_module_initialized);
 
-	ret = fds_register(fds_evt_handler);
+	ret = bm_zms_register(bm_zms_evt_handler);
 	if (ret != NRF_SUCCESS) {
 		LOG_ERR("Could not initialize flash storage. fds_register() returned 0x%x.", ret);
 		return NRF_ERROR_INTERNAL;

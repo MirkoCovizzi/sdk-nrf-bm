@@ -1,0 +1,4 @@
+tests:
+  lib.peer_manager.peer_data_storage:
+    platform_allow: native_sim
+    tags: unittest
