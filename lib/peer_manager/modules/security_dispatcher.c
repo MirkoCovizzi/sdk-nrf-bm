@@ -23,6 +23,12 @@
 
 #include <modules/security_dispatcher.h>
 
+#if CONFIG_UNITY
+#define STATIC
+#else
+#define STATIC static
+#endif
+
 LOG_MODULE_REGISTER(security_dispatcher, CONFIG_PEER_MANAGER_LOG_LEVEL);
 
 /* The number of registered event handlers. */
@@ -34,16 +40,16 @@ extern void sm_smd_evt_handler(pm_evt_t *p_event);
 /* Security Dispatcher events' handlers.
  * The number of elements in this array is SMD_EVENT_HANDLERS_CNT.
  */
-static pm_evt_handler_internal_t const m_evt_handlers[] = {sm_smd_evt_handler};
+STATIC pm_evt_handler_internal_t const m_evt_handlers[] = {sm_smd_evt_handler};
 
-static bool m_module_initialized;
+STATIC bool m_module_initialized;
 
-static int m_flag_sec_proc = CONFIG_BLE_CONN_STATE_USER_FLAG_COUNT;
-static int m_flag_sec_proc_pairing = CONFIG_BLE_CONN_STATE_USER_FLAG_COUNT;
-static int m_flag_sec_proc_bonding = CONFIG_BLE_CONN_STATE_USER_FLAG_COUNT;
-static int m_flag_allow_repairing = CONFIG_BLE_CONN_STATE_USER_FLAG_COUNT;
+STATIC int m_flag_sec_proc = -ENOSPC;
+STATIC int m_flag_sec_proc_pairing = -ENOSPC;
+STATIC int m_flag_sec_proc_bonding = -ENOSPC;
+STATIC int m_flag_allow_repairing = -ENOSPC;
 
-static ble_gap_lesc_p256_pk_t m_peer_pk;
+STATIC ble_gap_lesc_p256_pk_t m_peer_pk;
 
 static __INLINE bool sec_procedure(uint16_t conn_handle)
 {
@@ -581,9 +587,8 @@ static void auth_status_success_process(ble_gap_evt_t const *p_gap_evt)
 		send_unexpected_error(conn_handle, err_code);
 		pairing_success_evt_send(p_gap_evt, false);
 		if (new_peer_id) {
-			UNUSED_RETURN_VALUE(
-				/* We are already in a bad state. */
-				im_peer_free(peer_id));
+			/* We are already in a bad state. */
+			(void)im_peer_free(peer_id);
 		}
 	}
 }
@@ -659,7 +664,7 @@ static void conn_sec_update_process(ble_gap_evt_t const *p_gap_evt)
  */
 static void flag_id_init(int *p_flag_id)
 {
-	if (*p_flag_id == CONFIG_BLE_CONN_STATE_USER_FLAG_COUNT) {
+	if (*p_flag_id == -ENOSPC) {
 		*p_flag_id = ble_conn_state_user_flag_acquire();
 	}
 }
@@ -673,10 +678,10 @@ uint32_t smd_init(void)
 	flag_id_init(&m_flag_sec_proc_bonding);
 	flag_id_init(&m_flag_allow_repairing);
 
-	if ((m_flag_sec_proc == CONFIG_BLE_CONN_STATE_USER_FLAG_COUNT) ||
-	    (m_flag_sec_proc_pairing == CONFIG_BLE_CONN_STATE_USER_FLAG_COUNT) ||
-	    (m_flag_sec_proc_bonding == CONFIG_BLE_CONN_STATE_USER_FLAG_COUNT) ||
-	    (m_flag_allow_repairing == CONFIG_BLE_CONN_STATE_USER_FLAG_COUNT)) {
+	if ((m_flag_sec_proc == -ENOSPC) ||
+	    (m_flag_sec_proc_pairing == -ENOSPC) ||
+	    (m_flag_sec_proc_bonding == -ENOSPC) ||
+	    (m_flag_allow_repairing == -ENOSPC)) {
 		LOG_ERR("Could not acquire conn_state user flags. Increase "
 			"BLE_CONN_STATE_USER_FLAG_COUNT in the ble_conn_state module.");
 		return NRF_ERROR_INTERNAL;
