@@ -9,6 +9,7 @@
 #define ZEPHYR_INCLUDE_FS_BM_ZMS_H_
 
 #include <sys/types.h>
+#include <zephyr/sys/atomic.h>
 #include <stdbool.h>
 #include <bm_storage.h>
 
@@ -112,6 +113,7 @@ typedef void (*bm_zms_cb_t)(bm_zms_evt_t const *p_evt);
  *
  * @retval 0 on success.
  * @retval -ENOMEM if no more callback slots are available.
+ * @retval -EINVAL if @p fs or @p cb are NULL.
  */
 int bm_zms_register(struct bm_zms_fs *fs, bm_zms_cb_t cb);
 
