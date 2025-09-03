@@ -178,6 +178,7 @@ void test_im_ble_evt_handler(void)
     // Previously bonded.
     __cmock_pds_peer_data_iterate_prepare_Expect();
     __cmock_pds_peer_data_iterate_StubWithCallback(pds_peer_data_iterate_stub_im_evt_handler);
+    __cmock_pds_peer_data_iterate_ExpectAnyArgsAndReturn(true);
 
     im_ble_evt_handler(&ble_evt);
     TEST_ASSERT_EQUAL(m_peer_id, m_connections[m_conn_handle].peer_id);
@@ -354,7 +355,9 @@ void test_im_peer_id_get_by_master_id(void)
     // Test correct behavior with a matching master id
     __cmock_pds_peer_data_iterate_prepare_Expect();
     __cmock_pds_peer_data_iterate_StubWithCallback(pds_peer_data_iterate_stub_im_peer_id_get_by_master_id);
-    __cmock_pds_peer_data_iterate_StubWithCallback(pds_peer_data_iterate_stub_im_peer_id_get_by_master_id);
+    __cmock_pds_peer_data_iterate_ExpectAnyArgsAndReturn(true);
+    __cmock_pds_peer_data_iterate_ExpectAnyArgsAndReturn(true);
+
 
     master_id.ediv = m_ediv;
     memcpy(master_id.rand, m_rand, BLE_GAP_SEC_RAND_LEN);
@@ -636,6 +639,9 @@ void test_im_whitelist_get(void)
     // {2, 2, 3, 4, 5, 6}
 
     __cmock_pds_peer_data_read_StubWithCallback(pds_peer_data_read_stub_whitelist_get);
+    __cmock_pds_peer_data_read_ExpectAnyArgsAndReturn(NRF_SUCCESS);
+    __cmock_pds_peer_data_read_ExpectAnyArgsAndReturn(NRF_SUCCESS);
+    __cmock_pds_peer_data_read_ExpectAnyArgsAndReturn(NRF_SUCCESS);
 
     ret = im_whitelist_get((ble_gap_addr_t*)addrs, &wlisted_peer_cnt,
                            NULL, NULL); // Don't fetch IRKs
@@ -680,14 +686,19 @@ void test_im_whitelist_set(void)
     uint32_t     const peer_cnt = (sizeof(peers) / sizeof(pm_peer_id_t));
 
     __cmock_pds_peer_data_read_StubWithCallback(pds_peer_data_read_stub);
+    __cmock_pds_peer_data_read_ExpectAnyArgsAndReturn(NRF_SUCCESS);
 
     // Peer is not valid.
     ret = im_whitelist_set(peers, peer_cnt);
     TEST_ASSERT_EQUAL(NRF_ERROR_NOT_FOUND, ret);
 
+    __cmock_pds_peer_data_read_ExpectAnyArgsAndReturn(NRF_SUCCESS);
+
     // Peer is valid, but there is no data in flash.
     ret = im_whitelist_set(peers, peer_cnt);
     TEST_ASSERT_EQUAL(NRF_ERROR_NOT_FOUND, ret);
+
+    __cmock_pds_peer_data_read_ExpectAnyArgsAndReturn(NRF_SUCCESS);
 
     // Peer data was found but the peer address can not be whitelisted.
     ret = im_whitelist_set(peers, peer_cnt);
@@ -695,6 +706,9 @@ void test_im_whitelist_set(void)
 
     __cmock_sd_ble_gap_whitelist_set_ExpectAndReturn(NULL, peer_cnt, NRF_SUCCESS);
     __cmock_sd_ble_gap_whitelist_set_IgnoreArg_pp_wl_addrs();
+    __cmock_pds_peer_data_read_ExpectAnyArgsAndReturn(NRF_SUCCESS);
+    __cmock_pds_peer_data_read_ExpectAnyArgsAndReturn(NRF_SUCCESS);
+    __cmock_pds_peer_data_read_ExpectAnyArgsAndReturn(NRF_SUCCESS);
 
     ret = im_whitelist_set(peers, peer_cnt);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, ret);
@@ -747,6 +761,7 @@ void test_im_device_identities_list_set(void)
         __cmock_pds_peer_data_read_ReturnThruPtr_p_data(&mdata);
     }
     __cmock_sd_ble_gap_device_identities_set_StubWithCallback(sd_ble_gap_device_identities_set_stub);
+    __cmock_sd_ble_gap_device_identities_set_ExpectAnyArgsAndReturn(NRF_SUCCESS);
     ret = im_device_identities_list_set(peers, 3);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, ret);
 }
@@ -807,6 +822,7 @@ void test_im_address_resolve(void)
         expected_ecb_hal_data.ciphertext[SOC_ECB_KEY_LENGTH - 1 - i] = addr_array[i];
     }
     __cmock_sd_ecb_block_encrypt_StubWithCallback(callback);
+    __cmock_sd_ecb_block_encrypt_ExpectAnyArgsAndReturn(NRF_SUCCESS);
     n_ecb_calls = 0;
     TEST_ASSERT_EQUAL_UINT(true, im_address_resolve(&addr, &irk));
 }
