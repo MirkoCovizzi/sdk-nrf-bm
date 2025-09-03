@@ -9,13 +9,14 @@
 #include <nrf_error.h>
 #include <nrf_strerror.h>
 #include <nordic_common.h>
+#include <sdk_macros.h>
 #include <bluetooth/peer_manager/peer_manager_types.h>
 #include <modules/peer_manager_internal.h>
 #include <modules/peer_data_storage.h>
 #include <modules/pm_buffer.h>
 #include <modules/peer_database.h>
 
-LOG_MODULE_REGISTER(peer_database, CONFIG_PEER_MANAGER_LOG_LEVEL);
+LOG_MODULE_DECLARE(peer_manager, CONFIG_PEER_MANAGER_LOG_LEVEL);
 
 /**
  * @brief Macro for verifying that the data ID is among the values eligible for using the write

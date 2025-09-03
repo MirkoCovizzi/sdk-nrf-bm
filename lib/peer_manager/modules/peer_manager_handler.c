@@ -22,7 +22,9 @@
 
 #include <modules/peer_manager_handler.h>
 
-LOG_MODULE_REGISTER(peer_manager_handler, CONFIG_PEER_MANAGER_LOG_LEVEL);
+#define APP_ERROR_CHECK
+
+LOG_MODULE_DECLARE(peer_manager, CONFIG_PEER_MANAGER_LOG_LEVEL);
 
 static const char * const m_roles_str[] = {
 	"Invalid Role",
@@ -297,6 +299,7 @@ void pm_handler_flash_clean(pm_evt_t const *p_pm_evt)
 		break;
 
 	case PM_EVT_STORAGE_FULL:
+#if 0 /* todo: temporarily disabled. */
 		if (!flash_cleaning) {
 			err_code = NRF_SUCCESS;
 			LOG_INF("Attempting to clean flash.");
@@ -340,6 +343,7 @@ void pm_handler_flash_clean(pm_evt_t const *p_pm_evt)
 				}
 			}
 		}
+#endif
 		break;
 
 	case PM_EVT_ERROR_UNEXPECTED:
@@ -365,7 +369,7 @@ void pm_handler_flash_clean(pm_evt_t const *p_pm_evt)
 	case PM_EVT_SERVICE_CHANGED_IND_CONFIRMED:
 	case PM_EVT_SLAVE_SECURITY_REQ:
 		break;
-
+#if 0 /* todo: temporarily disabled. */
 	case PM_EVT_FLASH_GARBAGE_COLLECTED:
 		flash_cleaning = false;
 		flash_write_after_gc = false;
@@ -394,7 +398,7 @@ void pm_handler_flash_clean(pm_evt_t const *p_pm_evt)
 			pm_handler_flash_clean_on_return();
 		}
 		break;
-
+#endif
 	default:
 		break;
 	}
