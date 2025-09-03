@@ -25,6 +25,14 @@
 extern "C" {
 #endif
 
+#define IM_MAX_CONN_HANDLES	   (20)
+
+typedef struct {
+	uint16_t conn_handle;
+	pm_peer_id_t peer_id;
+	ble_gap_addr_t peer_address;
+} im_connection_t;
+
 /**
  * @brief Function for dispatching SoftDevice events to the ID Manager module.
  *
