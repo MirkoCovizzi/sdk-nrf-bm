@@ -1,0 +1,27 @@
+{
+    "_attrs": [
+        "unit_test"
+    ],
+    "_config_overrides": [
+        {
+            "PEER_MANAGER_ENABLED": 1
+        }
+    ],
+    "_headers": [
+        "..\\..\\id_manager.h"
+    ],
+    "_links": [
+        "appskeleton_unity_nrf52",
+        "s132:cmock",
+        "peer_database:cmock",
+        "peer_data_storage:cmock",
+        "ble_conn_state:cmock",
+        "app_error:weak_win32",
+        "peer_manager:noimpl",
+        "nrf_log"
+    ],
+    "_includes": [
+        "..\\..\\cmock"
+    ],
+    "_name": "test_id_manager"
+}
