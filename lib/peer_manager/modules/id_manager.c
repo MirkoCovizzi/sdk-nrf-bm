@@ -20,7 +20,12 @@
 
 LOG_MODULE_DECLARE(peer_manager, CONFIG_PEER_MANAGER_LOG_LEVEL);
 
-#define IM_MAX_CONN_HANDLES	   (20)
+#if CONFIG_UNITY
+#define STATIC
+#else
+#define STATIC static
+#endif
+
 #define IM_NO_INVALID_CONN_HANDLES (0xFF)
 #define IM_ADDR_CLEARTEXT_LENGTH   (3)
 #define IM_ADDR_CIPHERTEXT_LENGTH  (3)
@@ -35,16 +40,15 @@ extern void gcm_im_evt_handler(pm_evt_t *p_event);
 /* Identity Manager events' handlers.
  * The number of elements in this array is IM_EVENT_HANDLERS_CNT.
  */
-static pm_evt_handler_internal_t const m_evt_handlers[] = {pm_im_evt_handler, gcm_im_evt_handler};
+STATIC pm_evt_handler_internal_t const m_evt_handlers[] = {pm_im_evt_handler, gcm_im_evt_handler};
 
-typedef struct {
-	pm_peer_id_t peer_id;
-	ble_gap_addr_t peer_address;
-} im_connection_t;
+STATIC im_connection_t m_connections[IM_MAX_CONN_HANDLES];
+STATIC uint8_t m_wlisted_peer_cnt;
+STATIC pm_peer_id_t m_wlisted_peers[BLE_GAP_WHITELIST_ADDR_MAX_COUNT];
 
-static im_connection_t m_connections[IM_MAX_CONN_HANDLES];
-static uint8_t m_wlisted_peer_cnt;
-static pm_peer_id_t m_wlisted_peers[BLE_GAP_WHITELIST_ADDR_MAX_COUNT];
+#if CONFIG_UNITY
+size_t const im_event_handlers_cnt = IM_EVENT_HANDLERS_CNT;
+#endif
 
 /**
  * @brief Function for sending an event to all registered event handlers.

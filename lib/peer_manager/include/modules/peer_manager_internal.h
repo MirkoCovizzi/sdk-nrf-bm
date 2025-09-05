@@ -126,6 +126,7 @@ typedef void (*pm_evt_handler_internal_t)(pm_evt_t *p_event);
 
 /** @brief The number of bytes in a word. */
 #define BYTES_PER_WORD (4)
+#define BYTES_TO_WORDS(bytes) ROUND_UP(bytes, BYTES_PER_WORD) / BYTES_PER_WORD
 
 /**
  * @brief Macro for calculating the number of words that are needed to hold a number of bytes.
