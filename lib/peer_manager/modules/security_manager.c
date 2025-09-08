@@ -22,6 +22,12 @@
 #include <modules/nrf_ble_lesc.h>
 #endif
 
+#if CONFIG_UNITY
+#define STATIC
+#else
+#define STATIC static
+#endif
+
 LOG_MODULE_DECLARE(peer_manager, CONFIG_PEER_MANAGER_LOG_LEVEL);
 
 /* The number of registered event handlers. */
@@ -48,36 +54,36 @@ typedef struct {
 } sec_params_reply_context_t;
 
 /* Whether the Security Manager module has been initialized. */
-static bool m_module_initialized;
+STATIC bool m_module_initialized;
 
 /** The buffer for the default security parameters set by @ref sm_sec_params_set. */
-static ble_gap_sec_params_t m_sec_params;
+STATIC ble_gap_sec_params_t m_sec_params;
 /** The default security parameters set by @ref sm_sec_params_set. */
-static ble_gap_sec_params_t *mp_sec_params;
+STATIC ble_gap_sec_params_t *mp_sec_params;
 /** Whether @ref sm_sec_params_set has been called. */
-static bool m_sec_params_set;
+STATIC bool m_sec_params_set;
 
 #if CONFIG_PM_LESC_ENABLED == 0
 /* Pointer, provided by the user, to the public key to use for LESC procedures. */
-static ble_gap_lesc_p256_pk_t *m_p_public_key;
+STATIC ble_gap_lesc_p256_pk_t *m_p_public_key;
 #endif
 
 /* User flag indicating whether a connection has a pending call to @ref sm_link_secure because it
  * returned @ref NRF_ERROR_BUSY.
  */
-static int m_flag_link_secure_pending_busy = CONFIG_BLE_CONN_STATE_USER_FLAG_COUNT;
+STATIC int m_flag_link_secure_pending_busy = CONFIG_BLE_CONN_STATE_USER_FLAG_COUNT;
 /* User flag indicating whether a pending call to @ref sm_link_secure should be called with true for
  * the force_repairing parameter.
  */
-static int m_flag_link_secure_force_repairing = CONFIG_BLE_CONN_STATE_USER_FLAG_COUNT;
+STATIC int m_flag_link_secure_force_repairing = CONFIG_BLE_CONN_STATE_USER_FLAG_COUNT;
 /* User flag indicating whether a pending call to @ref sm_link_secure should be called with NULL
  * security parameters.
  */
-static int m_flag_link_secure_null_params = CONFIG_BLE_CONN_STATE_USER_FLAG_COUNT;
+STATIC int m_flag_link_secure_null_params = CONFIG_BLE_CONN_STATE_USER_FLAG_COUNT;
 /* User flag indicating whether a connection has a pending call to @ref sm_sec_params_reply because
  * it returned @ref NRF_ERROR_BUSY.
  */
-static int m_flag_params_reply_pending_busy = CONFIG_BLE_CONN_STATE_USER_FLAG_COUNT;
+STATIC int m_flag_params_reply_pending_busy = CONFIG_BLE_CONN_STATE_USER_FLAG_COUNT;
 
 /**
  * @brief Function for sending an SM event to all registered event handlers.
@@ -253,11 +259,12 @@ static uint32_t link_secure(uint16_t conn_handle, bool null_params, bool force_r
 	uint32_t err_code;
 	uint32_t return_err_code;
 	ble_gap_sec_params_t *p_sec_params;
+	sec_params_reply_context_t context;
 
 	if (null_params) {
 		p_sec_params = NULL;
 	} else {
-		sec_params_reply_context_t context = new_context_get();
+		context = new_context_get();
 
 		params_req_send(conn_handle, NULL, &context);
 		p_sec_params = context.p_sec_params;
