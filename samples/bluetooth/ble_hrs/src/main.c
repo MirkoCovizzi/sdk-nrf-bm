@@ -245,12 +245,7 @@ static void on_ble_evt(const ble_evt_t *evt, void *ctx)
 		break;
 
 	case BLE_GAP_EVT_SEC_PARAMS_REQUEST:
-		/* Pairing not supported */
-		err = sd_ble_gap_sec_params_reply(evt->evt.gap_evt.conn_handle,
-						  BLE_GAP_SEC_STATUS_PAIRING_NOT_SUPP, NULL, NULL);
-		if (err) {
-			LOG_ERR("Failed to reply with Security params, nrf_error %#x", err);
-		}
+		LOG_INF("BLE_GAP_EVT_SEC_PARAMS_REQUEST");
 		break;
 
 	case BLE_GATTS_EVT_SYS_ATTR_MISSING:
@@ -526,6 +521,8 @@ idle:
 	while (true) {
 		while (LOG_PROCESS()) {
 		}
+
+		(void)nrf_ble_lesc_request_handler();
 
 		/* Wait for an event. */
 		__WFE();

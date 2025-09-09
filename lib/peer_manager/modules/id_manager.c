@@ -256,6 +256,8 @@ pm_peer_id_t im_peer_id_get_by_conn_handle(uint16_t conn_handle)
 	const int idx = nrf_sdh_ble_idx_get(conn_handle);
 
 	if ((idx < 0) || (idx >= IM_MAX_CONN_HANDLES) || !ble_conn_state_valid(conn_handle)) {
+		LOG_ERR("im_peer_id_get_by_conn_handle(), idx: %d, ble_conn_state_valid: %d",
+			idx, ble_conn_state_valid(conn_handle));
 		return PM_PEER_ID_INVALID;
 	}
 
