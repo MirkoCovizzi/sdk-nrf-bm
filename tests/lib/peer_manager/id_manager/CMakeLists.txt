@@ -27,6 +27,7 @@ cmock_handle(${ZEPHYR_NRF_BM_MODULE_DIR}/lib/peer_manager/include/modules/peer_m
 cmock_handle(${ZEPHYR_NRF_BM_MODULE_DIR}/lib/peer_manager/include/modules/peer_data_storage.h)
 cmock_handle(${ZEPHYR_NRF_BM_MODULE_DIR}/lib/peer_manager/include/modules/peer_database.h)
 cmock_handle(${ZEPHYR_NRF_BM_MODULE_DIR}/include/bluetooth/peer_manager/peer_manager_types.h modules)
+cmock_handle(${ZEPHYR_NRF_BM_MODULE_DIR}/include/nrf_sdh_ble.h)
 
 cmock_handle(${SOFTDEVICE_INCLUDE_DIR}/ble_gap.h
   WORD_EXCLUDE
