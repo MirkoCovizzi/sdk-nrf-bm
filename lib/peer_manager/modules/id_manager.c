@@ -181,6 +181,9 @@ void im_ble_evt_handler(ble_evt_t const *ble_evt)
 	m_connections[idx].peer_id = bonded_matching_peer_id;
 	m_connections[idx].peer_address = gap_evt.params.connected.peer_addr;
 
+	LOG_INF("conn_handle: %d, peer_id: %d", m_connections[idx].conn_handle,
+		m_connections[idx].peer_id);
+
 	if (bonded_matching_peer_id != PM_PEER_ID_INVALID) {
 		/* Send a bonded peer event */
 		pm_evt_t im_evt;
@@ -356,6 +359,8 @@ bool im_master_id_is_valid(ble_gap_master_id_t const *p_master_id)
 void im_new_peer_id(uint16_t conn_handle, pm_peer_id_t peer_id)
 {
 	const int idx = nrf_sdh_ble_idx_get(conn_handle);
+
+	LOG_INF("im_new_peer_id(), idx: %d, peer_id: %d", idx, peer_id);
 
 	if (idx >= 0 && idx < IM_MAX_CONN_HANDLES) {
 		m_connections[idx].peer_id = peer_id;

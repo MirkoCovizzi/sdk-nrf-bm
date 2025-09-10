@@ -350,7 +350,8 @@ bool pds_peer_data_iterate(pm_peer_data_id_t data_id, pm_peer_id_t *const p_peer
 
 	/* We found a suitable Peer ID. */
 
-	*p_peer_id = *p_peer_id_iter;
+	/* `p_peer_id_iter` counts the iterations, so the Peer ID is iterations - 1 */
+	*p_peer_id = (*p_peer_id_iter) - 1;
 
 	/* `ret` is equal the exact amount of data contained in the entry, so copy that amount
 	 * safely.
@@ -420,6 +421,10 @@ uint32_t pds_peer_data_read(pm_peer_id_t peer_id, pm_peer_data_id_t data_id,
 		return NRF_ERROR_INTERNAL;
 	}
 
+	LOG_INF("Read entry %d with bm_zms_read(). peer_id: %d, data_id: %d", entry_id,
+		peer_id, data_id);
+	LOG_HEXDUMP_INF(temp_buf, ret, "pds_peer_data_read()");
+
 	memcpy(p_data->p_all_data, temp_buf, *p_buf_len);
 
 	if (*p_buf_len < ret) {
@@ -457,6 +462,8 @@ uint32_t pds_peer_data_store(pm_peer_id_t peer_id, pm_peer_data_const_t const *p
 	}
 	LOG_INF("Written entry %d with bm_zms_write(). peer_id: %d, data_id: %d", entry_id,
 		peer_id, p_peer_data->data_id);
+	LOG_HEXDUMP_INF(p_peer_data->p_all_data,
+		p_peer_data->length_words * BYTES_PER_WORD, "pds_peer_data_store()");
 
 	return NRF_SUCCESS;
 }

@@ -75,6 +75,9 @@ static void evt_send(pm_evt_t *p_event)
 {
 	p_event->peer_id = im_peer_id_get_by_conn_handle(p_event->conn_handle);
 
+	LOG_INF("security_dispatcher.evt_send(), peer_id: %d, evt_id: %d, conn_handle: %d",
+		p_event->peer_id, p_event->evt_id, p_event->conn_handle);
+
 	for (uint32_t i = 0; i < SMD_EVENT_HANDLERS_CNT; i++) {
 		m_evt_handlers[i](p_event);
 	}
@@ -135,6 +138,7 @@ static void send_storage_full_evt(uint16_t conn_handle)
 static void conn_sec_failure(uint16_t conn_handle, pm_conn_sec_procedure_t procedure,
 			     pm_sec_error_code_t error, uint8_t error_src)
 {
+	LOG_INF("conn_sec_failure()");
 	pm_evt_t evt = {.evt_id = PM_EVT_CONN_SEC_FAILED,
 			.conn_handle = conn_handle,
 			.params = {.conn_sec_failed = {
@@ -184,6 +188,7 @@ static void pairing_failure(uint16_t conn_handle, pm_sec_error_code_t error, uin
 static __INLINE void encryption_failure(uint16_t conn_handle, pm_sec_error_code_t error,
 					uint8_t error_src)
 {
+	LOG_INF("encryption_failure()");
 	conn_sec_failure(conn_handle, PM_CONN_SEC_PROCEDURE_ENCRYPTION, error, error_src);
 }
 
@@ -196,6 +201,7 @@ static __INLINE void encryption_failure(uint16_t conn_handle, pm_sec_error_code_
  */
 static void link_secure_failure(uint16_t conn_handle, pm_sec_error_code_t error, uint8_t error_src)
 {
+	LOG_INF("link_secure_failure()");
 	if (sec_procedure(conn_handle)) {
 		if (pairing(conn_handle)) {
 			pairing_failure(conn_handle, error, error_src);
@@ -347,6 +353,7 @@ static void sec_request_process(ble_gap_evt_t const *p_gap_evt)
  */
 static void sec_info_request_process(ble_gap_evt_t const *p_gap_evt)
 {
+	LOG_INF("sec_info_request_process()");
 	uint32_t err_code;
 	ble_gap_enc_info_t const *p_enc_info = NULL;
 	pm_peer_data_t peer_data;
@@ -365,10 +372,10 @@ static void sec_info_request_process(ble_gap_evt_t const *p_gap_evt)
 
 	sec_proc_start(p_gap_evt->conn_handle, true, PM_CONN_SEC_PROCEDURE_ENCRYPTION);
 
-	if (peer_id != PM_PEER_ID_INVALID) {
-		pm_peer_data_bonding_t bonding_data = { 0 };
-		uint32_t bonding_data_size = sizeof(pm_peer_data_bonding_t);
+	pm_peer_data_bonding_t bonding_data = { 0 };
+	uint32_t bonding_data_size = sizeof(pm_peer_data_bonding_t);
 
+	if (peer_id != PM_PEER_ID_INVALID) {
 		peer_data.p_all_data = &bonding_data;
 
 		err_code = pds_peer_data_read(peer_id, PM_PEER_DATA_ID_BONDING, &peer_data,
@@ -388,6 +395,8 @@ static void sec_info_request_process(ble_gap_evt_t const *p_gap_evt)
 			}
 		}
 	}
+
+	LOG_HEXDUMP_INF(p_enc_info, sizeof(ble_gap_enc_info_t), "p_enc_info");
 
 	err_code = sd_ble_gap_sec_info_reply(p_gap_evt->conn_handle, p_enc_info, NULL, NULL);
 
@@ -638,6 +647,7 @@ static void auth_status_process(ble_gap_evt_t const *p_gap_evt)
  */
 static void conn_sec_update_process(ble_gap_evt_t const *p_gap_evt)
 {
+	LOG_INF("conn_sec_update_process()");
 	if (!pairing(p_gap_evt->conn_handle)) {
 		/* This is an encryption procedure (not pairing), so this event marks the end of the
 		 * procedure.
