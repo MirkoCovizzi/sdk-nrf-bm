@@ -11,9 +11,9 @@
  */
 
 /** @file
-
-  @brief id manager cunit tests.
-*/
+ *
+ *  @brief id manager cunit tests.
+ */
 #include "id_manager.c"
 
 #include <string.h>
@@ -57,7 +57,7 @@ static uint8_t n_ecb_calls = 0xFF;
 static pm_peer_data_bonding_t return_im_evt_handler_bonding_data;
 static pm_peer_data_bonding_t return_im_peer_id_get_by_master_id_bonding_data;
 static pm_peer_data_bonding_t m_bond_data;
-static uint32_t n_im_peer_id_get_by_master_id_callback_calls = 0;
+static uint32_t n_im_peer_id_get_by_master_id_callback_calls;
 static uint32_t m_pds_peer_data_iterate_calls_cnt;
 
 void evt_handler_call_record_clear(void)
@@ -89,7 +89,7 @@ void setUp(void)
 	m_peer_id++;
 	memcpy(m_connections, m_connections_test, sizeof(m_connections));
 
-	// Suppress "Symbol not accessed" lint warnings.
+	/* Suppress "Symbol not accessed" lint warnings. */
 	(void)m_evt_handlers;
 }
 
@@ -130,7 +130,7 @@ void test_im_ble_evt_handler(void)
 
 	memcpy(ble_evt.evt.gap_evt.params.connected.peer_addr.addr, m_rand, BLE_GAP_ADDR_LEN);
 
-	// Not previously bonded.
+	/* Not previously bonded. */
 	pds_peer_data_iterate_prepare_Expect();
 	pds_peer_data_iterate_ExpectAndReturn(PM_PEER_DATA_ID_BONDING, NULL, NULL, false);
 	pds_peer_data_iterate_IgnoreArg_p_peer_id();
@@ -147,7 +147,7 @@ void test_im_ble_evt_handler(void)
 	m_conn_handle++;
 	ble_evt.evt.gap_evt.conn_handle++;
 
-	// Previously bonded.
+	/* Previously bonded. */
 	pds_peer_data_iterate_prepare_Expect();
 	pds_peer_data_iterate_StubWithCallback(pds_peer_data_iterate_stub_im_evt_handler);
 
@@ -207,7 +207,7 @@ void find_duplicate_prepare(pm_peer_data_t *p_peer_data, bool expect_find)
 void duplicate_bonding_data_test(ble_gap_irk_t *p_irk1, ble_gap_addr_t *p_addr1,
 				 ble_gap_irk_t *p_irk2, ble_gap_addr_t *p_addr2, bool expected_ret)
 {
-	// Test both im_is_duplicate_bonding_data() and im_find_duplicate_bonding_data().
+	/* Test both im_is_duplicate_bonding_data() and im_find_duplicate_bonding_data(). */
 	pm_peer_data_bonding_t bonding_data1 = {0};
 	pm_peer_data_bonding_t bonding_data2 = {0};
 	pm_peer_data_t peer_data1 = {.length_words = PM_BONDING_DATA_N_WORDS(),
@@ -225,9 +225,10 @@ void duplicate_bonding_data_test(ble_gap_irk_t *p_irk1, ble_gap_addr_t *p_addr1,
 
 	find_duplicate_prepare(&peer_data1, expected_ret);
 	pm_peer_id_t peer_id = im_find_duplicate_bonding_data(&bonding_data2, PM_PEER_ID_INVALID);
+
 	TEST_ASSERT_EQUAL(expected_ret ? m_peer_id : PM_PEER_ID_INVALID, peer_id);
 
-	// Skip peer ID
+	/* Skip peer ID */
 	find_duplicate_prepare(&peer_data1, false);
 	peer_id = im_find_duplicate_bonding_data(&bonding_data2, m_peer_id);
 	TEST_ASSERT_EQUAL(PM_PEER_ID_INVALID, peer_id);
@@ -248,31 +249,31 @@ void test_duplicate_bonding_data(void)
 	ble_gap_addr_t addr_p = {.addr = {1, 1, 1, 1, 1, 4}, .addr_type = BLE_GAP_ADDR_TYPE_PUBLIC};
 
 	duplicate_bonding_data_test(&valid_irk1, &addr_rs, &valid_irk1, &addr_rs,
-				    true); // Same id addr, same IRK.
+				    true); /* Same id addr, same IRK. */
 	duplicate_bonding_data_test(&valid_irk1, &addr_rs, &valid_irk2, &addr_rs,
-				    true); // Same id addr, different IRK.
+				    true); /* Same id addr, different IRK. */
 	duplicate_bonding_data_test(&invalid_irk, &addr_rs, &invalid_irk, &addr_rs,
-				    true); // Same id addr, same invalid IRK.
+				    true); /* Same id addr, same invalid IRK. */
 	duplicate_bonding_data_test(&valid_irk1, &addr_rpr, &valid_irk1, &addr_rpr,
-				    true); // Same non-id addr, same IRK.
+				    true); /* Same non-id addr, same IRK. */
 	duplicate_bonding_data_test(&valid_irk1, &addr_rpnr, &valid_irk2, &addr_rpnr,
-				    false); // Same non-id addr, different IRK.
+				    false); /* Same non-id addr, different IRK. */
 	duplicate_bonding_data_test(&valid_irk2, &addr_p, &valid_irk2, &addr_rs,
-				    false); // different id addr, same IRK.
+				    false); /* different id addr, same IRK. */
 	duplicate_bonding_data_test(&valid_irk2, &addr_rpnr, &valid_irk2, &addr_rpr,
-				    true); // different non-id addr, same IRK.
+				    true); /* different non-id addr, same IRK. */
 	duplicate_bonding_data_test(&invalid_irk, &addr_rpnr, &invalid_irk, &addr_rpr,
-				    false); // different non-id addr, same invalid IRK.
+				    false); /* different non-id addr, same invalid IRK. */
 	duplicate_bonding_data_test(&invalid_irk, &addr_rpnr, &valid_irk2, &addr_rpr,
-				    false); // different non-id addr, one invalid IRK.
+				    false); /* different non-id addr, one invalid IRK. */
 	duplicate_bonding_data_test(&valid_irk1, &addr_rpnr, &invalid_irk, &addr_rpr,
-				    false); // different non-id addr, one invalid IRK.
+				    false); /* different non-id addr, one invalid IRK. */
 	duplicate_bonding_data_test(&valid_irk1, &addr_rpnr, &valid_irk2, &addr_rpr,
-				    false); // different non-id addr, different IRK.
+				    false); /* different non-id addr, different IRK. */
 	duplicate_bonding_data_test(&valid_irk1, &addr_rpnr, &valid_irk1, &addr_rs,
-				    true); // id addr + non-id addr, same IRK.
+				    true); /* id addr + non-id addr, same IRK. */
 	duplicate_bonding_data_test(&valid_irk1, &addr_p, &valid_irk1, &addr_rpr,
-				    true); // id addr + non-id addr, same IRK.
+				    true); /* id addr + non-id addr, same IRK. */
 }
 
 void test_master_id_compare(void)
@@ -281,12 +282,12 @@ void test_master_id_compare(void)
 	ble_gap_master_id_t master_id2;
 	ble_gap_master_id_t master_id3;
 	ble_gap_master_id_t master_id4;
-	// Initialize master_id3 with a ediv different from master_id1
+	/* Initialize master_id3 with a ediv different from master_id1 */
 	master_id1.ediv = m_ediv;
 	master_id2.ediv = m_ediv;
 	master_id3.ediv = m_ediv + 1;
 	master_id4.ediv = m_ediv;
-	// Initialize master_id3 with a rand different from master_id1
+	/* Initialize master_id3 with a rand different from master_id1 */
 	for (int i = 0; i < BLE_GAP_SEC_RAND_LEN; i++) {
 		master_id1.rand[i] = m_rand[i];
 		master_id2.rand[i] = m_rand[i];
@@ -303,9 +304,10 @@ void test_master_id_compare(void)
 			       im_master_ids_compare((ble_gap_master_id_t const *)&master_id1,
 						     (ble_gap_master_id_t const *)&master_id4));
 
-	// Test comparison of invalid master IDs.
+	/* Test comparison of invalid master IDs. */
 	ble_gap_master_id_t empty_master_id1;
 	ble_gap_master_id_t empty_master_id2;
+
 	empty_master_id1.ediv = 0;
 	empty_master_id2.ediv = 0;
 	for (int i = 0; i < BLE_GAP_SEC_RAND_LEN; i++) {
@@ -344,7 +346,7 @@ void test_im_peer_id_get_by_master_id(void)
 	pm_peer_id_t peer_id;
 	ble_gap_master_id_t master_id;
 
-	// Test correct behavior with a matching master id
+	/* Test correct behavior with a matching master id */
 	pds_peer_data_iterate_prepare_Expect();
 	pds_peer_data_iterate_StubWithCallback(
 		pds_peer_data_iterate_stub_im_peer_id_get_by_master_id);
@@ -357,7 +359,7 @@ void test_im_peer_id_get_by_master_id(void)
 	peer_id = im_peer_id_get_by_master_id(&master_id);
 	TEST_ASSERT_EQUAL_UINT(m_peer_id, peer_id);
 
-	// Test correct behavior with no peer with matching master id
+	/* Test correct behavior with no peer with matching master id */
 }
 
 void test_im_master_id_is_valid(void)
@@ -377,15 +379,16 @@ void test_im_master_id_is_valid(void)
 		false, im_master_id_is_valid((ble_gap_master_id_t const *)&invalid_master_id));
 }
 
-// Running this test will cause the id manager to populate the first two elements in
-// m_im.connections as shown here:
-// [{m_conn_handle, m_peer_id}, {m_conn_handle + 1, m_peer_id + 1}, ...]
+/* Running this test will cause the id manager to populate the first two elements in
+ * m_im.connections as shown here:
+ * [{m_conn_handle, m_peer_id}, {m_conn_handle + 1, m_peer_id + 1}, ...]
+ */
 void test_im_new_peer_id(void)
 {
 	im_new_peer_id(m_conn_handle, m_peer_id);
 	TEST_ASSERT_EQUAL_UINT(m_peer_id, m_connections[m_conn_handle].peer_id);
 
-	// Don't mangle memory. Should be caught as segfault if it happens.
+	/* Don't mangle memory. Should be caught as segfault if it happens. */
 	im_new_peer_id(BLE_CONN_HANDLE_INVALID - 1, m_peer_id);
 }
 
@@ -395,25 +398,25 @@ void test_im_peer_free(void)
 	ble_conn_state_valid_IgnoreArg_conn_handle();
 	uint16_t conn_handle = im_conn_handle_get(m_peer_id);
 
-	// Error from pdb_peer_free, don't disassociate.
+	/* Error from pdb_peer_free, don't disassociate. */
 	ble_conn_state_valid_ExpectAndReturn(conn_handle, true);
 	pdb_peer_free_ExpectAndReturn(m_peer_id, NRF_ERROR_INTERNAL);
 	TEST_ASSERT_EQUAL(NRF_ERROR_INTERNAL, im_peer_free(m_peer_id));
 	TEST_ASSERT_NOT_EQUAL(PM_PEER_ID_INVALID, m_connections[conn_handle].peer_id);
 
-	// invalid conn handle, don't disassociate.
+	/* invalid conn handle, don't disassociate. */
 	ble_conn_state_valid_ExpectAndReturn(conn_handle, false);
 	pdb_peer_free_ExpectAndReturn(m_peer_id, NRF_SUCCESS);
 	TEST_ASSERT_EQUAL(NRF_SUCCESS, im_peer_free(m_peer_id));
 	TEST_ASSERT_NOT_EQUAL(PM_PEER_ID_INVALID, m_connections[conn_handle].peer_id);
 
-	// pdb_peer_free successful, disassociate.
+	/* pdb_peer_free successful, disassociate. */
 	ble_conn_state_valid_ExpectAndReturn(conn_handle, true);
 	pdb_peer_free_ExpectAndReturn(m_peer_id, NRF_SUCCESS);
 	TEST_ASSERT_EQUAL(NRF_SUCCESS, im_peer_free(m_peer_id));
 	TEST_ASSERT_EQUAL(PM_PEER_ID_INVALID, m_connections[conn_handle].peer_id);
 
-	// pdb_peer_free successful, not connected. Should segfault if memory is accessed.
+	/* pdb_peer_free successful, not connected. Should segfault if memory is accessed. */
 	m_peer_id += 20;
 	pdb_peer_free_ExpectAndReturn(m_peer_id, NRF_SUCCESS);
 	TEST_ASSERT_EQUAL(NRF_SUCCESS, im_peer_free(m_peer_id));
@@ -421,12 +424,12 @@ void test_im_peer_free(void)
 
 void test_im_peer_id_get_by_conn_handle(void)
 {
-	// Get the peer id of the peer with m_conn_handle.
+	/* Get the peer id of the peer with m_conn_handle. */
 	ble_conn_state_valid_ExpectAndReturn(m_conn_handle, true);
 	TEST_ASSERT_EQUAL_UINT(m_connections_test[m_conn_handle].peer_id,
 			       im_peer_id_get_by_conn_handle(m_conn_handle));
 
-	// Get the peer id of invalid conn handle.
+	/* Get the peer id of invalid conn handle. */
 	ble_conn_state_valid_ExpectAndReturn(m_conn_handle, false);
 	TEST_ASSERT_EQUAL_UINT(PM_PEER_ID_INVALID, im_peer_id_get_by_conn_handle(m_conn_handle));
 	TEST_ASSERT_EQUAL_UINT(PM_PEER_ID_INVALID,
@@ -439,14 +442,14 @@ void test_im_conn_handle_get(void)
 {
 	uint16_t conn_handle;
 
-	// Get the conn handle of the peer with m_peer_id.
+	/* Get the conn handle of the peer with m_peer_id. */
 	ble_conn_state_valid_ExpectAndReturn(0, true);
 	ble_conn_state_valid_IgnoreArg_conn_handle();
 	conn_handle = im_conn_handle_get(m_peer_id);
 	TEST_ASSERT(conn_handle < IM_MAX_CONN_HANDLES);
-	TEST_ASSERT_EQUAL_UINT(m_peer_id, m_connections[conn_handle].peer_id); // lint !e661
+	TEST_ASSERT_EQUAL_UINT(m_peer_id, m_connections[conn_handle].peer_id); /* lint !e661 */
 
-	// Attempt to get a conn handle for an invalid peer id.
+	/* Attempt to get a conn handle for an invalid peer id. */
 	ble_conn_state_valid_ExpectAndReturn(conn_handle, false);
 	TEST_ASSERT_EQUAL_UINT(BLE_CONN_HANDLE_INVALID, im_conn_handle_get(m_peer_id));
 	TEST_ASSERT_EQUAL_UINT(BLE_CONN_HANDLE_INVALID, im_conn_handle_get(m_peer_id + 20));
@@ -457,15 +460,15 @@ void test_im_ble_addr_get(void)
 {
 	ble_gap_addr_t addr;
 
-	// Conn handle too large
+	/* Conn handle too large */
 	TEST_ASSERT_EQUAL(BLE_ERROR_INVALID_CONN_HANDLE,
 			  im_ble_addr_get(IM_MAX_CONN_HANDLES, &addr));
 
-	// Conn handle invalid
+	/* Conn handle invalid */
 	ble_conn_state_valid_ExpectAndReturn(m_conn_handle, false);
 	TEST_ASSERT_EQUAL(BLE_ERROR_INVALID_CONN_HANDLE, im_ble_addr_get(m_conn_handle, &addr));
 
-	// Success
+	/* Success */
 	ble_conn_state_valid_ExpectAndReturn(m_conn_handle, true);
 	TEST_ASSERT_EQUAL(NRF_SUCCESS, im_ble_addr_get(m_conn_handle, &addr));
 	TEST_ASSERT_EQUAL_MEMORY(&m_connections_test[m_conn_handle].peer_address, &addr,
@@ -519,7 +522,7 @@ void test_im_privacy_set(void)
 	pm_privacy_params_t privacy_params_on = {
 		.privacy_mode = BLE_GAP_PRIVACY_MODE_DEVICE_PRIVACY,
 		.private_addr_type = BLE_GAP_ADDR_TYPE_RANDOM_PRIVATE_RESOLVABLE,
-		.private_addr_cycle_s = 24, // arbitrary
+		.private_addr_cycle_s = 24, /* arbitrary */
 		.p_device_irk = &m_arbitrary_irk,
 	};
 
@@ -558,7 +561,7 @@ ret_code_t pds_peer_data_read_stub(pm_peer_id_t peer_id, pm_peer_data_id_t data_
 		return NRF_ERROR_INVALID_PARAM;
 
 	case 2:
-		// This address type is no good for whitelist.
+		/* This address type is no good for whitelist. */
 		p_data->p_bonding_data->peer_ble_id.id_addr_info.addr_type =
 			BLE_GAP_ADDR_TYPE_RANDOM_PRIVATE_RESOLVABLE;
 		return NRF_SUCCESS;
@@ -610,23 +613,24 @@ void test_im_whitelist_get(void)
 
 	memcpy(dummy_addr.addr, m_addr, BLE_GAP_ADDR_LEN);
 
-	// Whitelist three peers first.
+	/* Whitelist three peers first. */
 
 	memcpy(m_wlisted_peers, peers, sizeof(peers));
 	m_wlisted_peer_cnt = 3;
 
-	// When im_whitelist_get() is called, the Peer Manager will attempt
-	// to fetch addresses and IRKs of the peers previously whitelisted.
-
-	// This stup loads three peers from flash, with address
-	// {0, 2, 3, 4, 5, 6}
-	// {1, 2, 3, 4, 5, 6}
-	// {2, 2, 3, 4, 5, 6}
+	/* When im_whitelist_get() is called, the Peer Manager will attempt
+	 * to fetch addresses and IRKs of the peers previously whitelisted.
+	 *
+	 * This stub loads three peers from flash, with address
+	 * {0, 2, 3, 4, 5, 6}
+	 * {1, 2, 3, 4, 5, 6}
+	 * {2, 2, 3, 4, 5, 6}
+	 */
 
 	pds_peer_data_read_StubWithCallback(pds_peer_data_read_stub_whitelist_get);
 
 	ret = im_whitelist_get((ble_gap_addr_t *)addrs, &wlisted_peer_cnt, NULL,
-			       NULL); // Don't fetch IRKs
+			       NULL); /* Don't fetch IRKs */
 
 	TEST_ASSERT_EQUAL(NRF_SUCCESS, ret);
 	TEST_ASSERT_EQUAL(3, wlisted_peer_cnt);
@@ -666,15 +670,15 @@ void test_im_whitelist_set(void)
 
 	pds_peer_data_read_StubWithCallback(pds_peer_data_read_stub);
 
-	// Peer is not valid.
+	/* Peer is not valid. */
 	ret = im_whitelist_set(peers, peer_cnt);
 	TEST_ASSERT_EQUAL(NRF_ERROR_NOT_FOUND, ret);
 
-	// Peer is valid, but there is no data in flash.
+	/* Peer is valid, but there is no data in flash. */
 	ret = im_whitelist_set(peers, peer_cnt);
 	TEST_ASSERT_EQUAL(NRF_ERROR_NOT_FOUND, ret);
 
-	// Peer data was found but the peer address can not be whitelisted.
+	/* Peer data was found but the peer address can not be whitelisted. */
 	ret = im_whitelist_set(peers, peer_cnt);
 	TEST_ASSERT_EQUAL(BLE_ERROR_GAP_INVALID_BLE_ADDR, ret);
 
@@ -731,6 +735,7 @@ void test_im_device_identities_list_set(void)
 
 	for (int i = 0; i < 3; i++) {
 		pm_peer_data_t mdata;
+
 		mdata.p_bonding_data = &data[i];
 		pds_peer_data_read_ExpectAndReturn(peers[i], PM_PEER_DATA_ID_BONDING, NULL, NULL,
 						   NRF_SUCCESS);
@@ -771,6 +776,7 @@ void test_im_address_resolve(void)
 {
 	ble_gap_addr_t addr;
 	ble_gap_irk_t irk;
+
 	addr.addr_type = BLE_GAP_ADDR_TYPE_RANDOM_PRIVATE_RESOLVABLE;
 	uint8_t addr_array[6] = {0xaa, 0xfb, 0x0d, 0x70, 0x81, 0x94};
 	uint8_t irk_array[SOC_ECB_KEY_LENGTH] = {0xec, 0x02, 0x34, 0xa3, 0x57, 0xc8, 0xad, 0x05,
