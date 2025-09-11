@@ -8,6 +8,7 @@
 #include <string.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/sys/util.h>
+#include <zephyr/sys/atomic.h>
 #include <sdk_macros.h>
 #include <nrf_error.h>
 #include <sdk_macros.h>
@@ -20,8 +21,6 @@
 #define PEER_MANAGER_NODE DT_NODELABEL(peer_manager_partition)
 #define PEER_MANAGER_PARTITION_OFFSET DT_REG_ADDR(PEER_MANAGER_NODE)
 #define PEER_MANAGER_PARTITION_SIZE DT_REG_SIZE(PEER_MANAGER_NODE)
-
-#define CODE_DISABLED 0
 
 LOG_MODULE_DECLARE(peer_manager, CONFIG_PEER_MANAGER_LOG_LEVEL);
 
@@ -86,21 +85,6 @@ static void entry_id_to_peer_id_peer_data_id(uint32_t entry_id, pm_peer_id_t *pe
 	*peer_id = entry_id >> ENTRY_ID_PEER_ID_OFFSET_BITS;
 }
 
-#if CODE_DISABLED /* todo: this does not apply anymore. Find an alternative. Used in evt handler. */
-/* Function for checking whether a file ID is relevant for the Peer Manager. */
-static bool file_id_within_pm_range(uint16_t file_id)
-{
-	return ((PDS_FIRST_RESERVED_FILE_ID <= file_id) && (file_id <= PDS_LAST_RESERVED_FILE_ID));
-}
-
-/* Function for checking whether a record key is relevant for the Peer Manager. */
-static bool record_key_within_pm_range(uint16_t record_key)
-{
-	return ((PDS_FIRST_RESERVED_RECORD_KEY <= record_key) &&
-		(record_key <= PDS_LAST_RESERVED_RECORD_KEY));
-}
-#endif
-
 static bool peer_data_id_is_valid(pm_peer_data_id_t data_id)
 {
 	return ((data_id == PM_PEER_DATA_ID_BONDING) ||
@@ -128,44 +112,65 @@ static void send_unexpected_error(pm_peer_id_t peer_id, uint32_t err_code)
 	pds_evt_send(&error_evt);
 }
 
+/* Returns the next data entry or a negative errno. */
+static uint32_t find_next_data_entry_in_peer(pm_peer_id_t peer_id, uint32_t *next_entry_id)
+{
+	ssize_t ret;
+	uint8_t temp_buf[PM_PEER_DATA_MAX_SIZE] = { 0 };
+
+	for (pm_peer_data_id_t i = 0; i < PM_PEER_DATA_ID_LAST; i++) {
+		uint32_t entry_id = peer_id_peer_data_id_to_entry_id(peer_id, i);
+
+		ret = bm_zms_read(&fs, entry_id, temp_buf, sizeof(temp_buf));
+		/* Unexpected error. */
+		if (ret < 0 && ret != -ENOENT) {
+			LOG_ERR("Could not read entry %d from NVM. bm_zms_read() returned %d. "
+				"peer_id: %d, data_id: %d", entry_id, ret, peer_id, i);
+			return NRF_ERROR_INTERNAL;
+		}
+
+		/* Some peer data has been found. */
+		if (ret > 0) {
+			*next_entry_id = entry_id;
+			return NRF_SUCCESS;
+		}
+	}
+
+	/* Every data read for the peer has returned `-ENOENT`. */
+	return NRF_ERROR_NOT_FOUND;
+}
+
 /* Function for deleting all data belonging to a peer.
  * These operations will be sent to FDS one at a time.
  */
 static void peer_data_delete_process(void)
 {
-#if CODE_DISABLED
-	uint32_t ret;
+	int err;
 	pm_peer_id_t peer_id;
-	uint16_t file_id;
-	fds_record_desc_t desc;
-	fds_find_token_t ftok;
+	uint32_t entry_id;
 
 	m_peer_delete_deferred = false;
 
-	memset(&ftok, 0x00, sizeof(fds_find_token_t));
 	peer_id = peer_id_get_next_deleted(PM_PEER_ID_INVALID);
 
+	/* PM_PEER_ID_INVALID is used in `peer_id` to inform that there are no more next deleted. */
 	while ((peer_id != PM_PEER_ID_INVALID) &&
-	       (fds_record_find_in_file(peer_id_to_file_id(peer_id), &desc, &ftok) ==
-		FDS_ERR_NOT_FOUND)) {
+		(find_next_data_entry_in_peer(peer_id, &entry_id) == NRF_ERROR_NOT_FOUND)) {
 		peer_id_free(peer_id);
 		peer_id = peer_id_get_next_deleted(peer_id);
 	}
 
 	if (peer_id != PM_PEER_ID_INVALID) {
-		file_id = peer_id_to_file_id(peer_id);
-		ret = fds_file_delete(file_id);
-
-		if (ret == FDS_ERR_NO_SPACE_IN_QUEUES) {
+		err = bm_zms_delete(&fs, entry_id);
+		if (err == -ENOMEM) {
 			m_peer_delete_deferred = true;
-		} else if (ret != NRF_SUCCESS) {
-			LOG_ERR("Could not delete peer data. fds_file_delete() returned 0x%x "
-				"for peer_id: %d",
-				ret, peer_id);
-			send_unexpected_error(peer_id, ret);
+		} else if (err < 0) {
+			LOG_ERR("Could not delete peer data. bm_zms_delete() returned %d "
+				"for peer_id: %d", err, peer_id);
+			/* Send generic internal error since ZMS returns errnos. */
+			send_unexpected_error(peer_id, NRF_ERROR_INTERNAL);
 		}
 	}
-#endif
 }
 
 static void peer_ids_load(void)
@@ -190,73 +195,6 @@ static void peer_ids_load(void)
 
 static void bm_zms_evt_handler(bm_zms_evt_t const *p_evt)
 {
-#if CODE_DISABLED
-	pm_evt_t pds_evt = {.peer_id = file_id_to_peer_id(p_fds_evt->write.file_id)};
-
-	switch (p_fds_evt->id) {
-	case FDS_EVT_WRITE:
-	case FDS_EVT_UPDATE:
-	case FDS_EVT_DEL_RECORD:
-		if (file_id_within_pm_range(p_fds_evt->write.file_id) ||
-		    record_key_within_pm_range(p_fds_evt->write.record_key)) {
-			pds_evt.params.peer_data_update_succeeded.data_id =
-				record_key_to_peer_data_id(p_fds_evt->write.record_key);
-			pds_evt.params.peer_data_update_succeeded.action =
-				(p_fds_evt->id == FDS_EVT_DEL_RECORD) ? PM_PEER_DATA_OP_DELETE
-								      : PM_PEER_DATA_OP_UPDATE;
-			pds_evt.params.peer_data_update_succeeded.token =
-				p_fds_evt->write.record_id;
-
-			if (p_fds_evt->result == NRF_SUCCESS) {
-				pds_evt.evt_id = PM_EVT_PEER_DATA_UPDATE_SUCCEEDED;
-				pds_evt.params.peer_data_update_succeeded.flash_changed = true;
-			} else {
-				pds_evt.evt_id = PM_EVT_PEER_DATA_UPDATE_FAILED;
-				pds_evt.params.peer_data_update_failed.error = p_fds_evt->result;
-			}
-
-			pds_evt_send(&pds_evt);
-		}
-		break;
-
-	case FDS_EVT_DEL_FILE:
-		if (file_id_within_pm_range(p_fds_evt->del.file_id) &&
-		    (p_fds_evt->del.record_key == FDS_RECORD_KEY_DIRTY)) {
-			if (p_fds_evt->result == NRF_SUCCESS) {
-				pds_evt.evt_id = PM_EVT_PEER_DELETE_SUCCEEDED;
-				peer_id_free(pds_evt.peer_id);
-			} else {
-				pds_evt.evt_id = PM_EVT_PEER_DELETE_FAILED;
-				pds_evt.params.peer_delete_failed.error = p_fds_evt->result;
-			}
-
-			/* Trigger remaining deletes. */
-			m_peer_delete_deferred = true;
-
-			pds_evt_send(&pds_evt);
-		}
-		break;
-
-	case FDS_EVT_GC:
-		if (p_fds_evt->result == NRF_SUCCESS) {
-			pds_evt.evt_id = PM_EVT_FLASH_GARBAGE_COLLECTED;
-		} else {
-			pds_evt.evt_id = PM_EVT_FLASH_GARBAGE_COLLECTION_FAILED;
-			pds_evt.params.garbage_collection_failed.error = p_fds_evt->result;
-		}
-		pds_evt.peer_id = PM_PEER_ID_INVALID;
-		pds_evt_send(&pds_evt);
-		break;
-
-	default:
-		/* No action. */
-		break;
-	}
-
-	if (m_peer_delete_deferred) {
-		peer_data_delete_process();
-	}
-#endif
 	pm_peer_id_t peer_id;
 	pm_peer_data_id_t data_id;
 
@@ -279,26 +217,53 @@ static void bm_zms_evt_handler(bm_zms_evt_t const *p_evt)
 			pds_evt.evt_id = PM_EVT_PEER_DATA_UPDATE_SUCCEEDED;
 			pds_evt.params.peer_data_update_succeeded.flash_changed = true;
 		} else {
+			LOG_ERR("BM_ZMS write failed with error %d", p_evt->result);
 			pds_evt.evt_id = PM_EVT_PEER_DATA_UPDATE_FAILED;
-			pds_evt.params.peer_data_update_failed.error = p_evt->result;
+			pds_evt.params.peer_data_update_failed.error = NRF_ERROR_INTERNAL;
 		}
 
 		pds_evt_send(&pds_evt);
 		break;
 	case BM_ZMS_EVT_DELETE:
-		pds_evt.params.peer_data_update_succeeded.data_id = data_id;
-		pds_evt.params.peer_data_update_succeeded.action = PM_PEER_DATA_OP_DELETE;
-		pds_evt.params.peer_data_update_succeeded.token = p_evt->id;
+		if (!peer_id_is_deleted(peer_id)) {
+			pds_evt.params.peer_data_update_succeeded.data_id = data_id;
+			pds_evt.params.peer_data_update_succeeded.action = PM_PEER_DATA_OP_DELETE;
+			pds_evt.params.peer_data_update_succeeded.token = p_evt->id;
 
-		if (p_evt->result == 0) {
-			pds_evt.evt_id = PM_EVT_PEER_DATA_UPDATE_SUCCEEDED;
-			pds_evt.params.peer_data_update_succeeded.flash_changed = true;
+			if (p_evt->result == 0) {
+				pds_evt.evt_id = PM_EVT_PEER_DATA_UPDATE_SUCCEEDED;
+				pds_evt.params.peer_data_update_succeeded.flash_changed = true;
+			} else {
+				LOG_ERR("BM_ZMS delete failed with error %d", p_evt->result);
+				pds_evt.evt_id = PM_EVT_PEER_DATA_UPDATE_FAILED;
+				pds_evt.params.peer_data_update_failed.error = NRF_ERROR_INTERNAL;
+			}
+
+			pds_evt_send(&pds_evt);
 		} else {
-			pds_evt.evt_id = PM_EVT_PEER_DATA_UPDATE_FAILED;
-			pds_evt.params.peer_data_update_failed.error = p_evt->result;
+			if (p_evt->result == -ENOMEM) {
+				m_peer_delete_deferred = true;
+			} else if (p_evt->result < 0) {
+				/* Unrecoverable error. */
+				LOG_ERR("BM_ZMS delete failed with error %d", p_evt->result);
+				pds_evt.evt_id = PM_EVT_PEER_DELETE_FAILED;
+				pds_evt.params.peer_delete_failed.error = NRF_ERROR_INTERNAL;
+				pds_evt_send(&pds_evt);
+			} else {
+				uint32_t next_entry_id;
+				uint32_t ret;
+
+				ret = find_next_data_entry_in_peer(peer_id, &next_entry_id);
+				if (ret == NRF_SUCCESS) {
+					m_peer_delete_deferred = true;
+				} else if (ret == NRF_ERROR_NOT_FOUND) {
+					pds_evt.evt_id = PM_EVT_PEER_DELETE_SUCCEEDED;
+					peer_id_free(pds_evt.peer_id);
+					pds_evt_send(&pds_evt);
+				}
+			}
 		}
 
-		pds_evt_send(&pds_evt);
 		break;
 	default:
 		/* No action. */
