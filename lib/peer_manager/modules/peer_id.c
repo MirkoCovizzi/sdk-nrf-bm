@@ -14,15 +14,11 @@
 #include <bluetooth/peer_manager/peer_manager_types.h>
 #include <modules/peer_id.h>
 
-#define FLAGS_PER_ELEMENT (sizeof(atomic_t) * CHAR_BIT)
-#define FLAGS_ARRAY_LEN(flag_count) (((flag_count - 1) / FLAGS_PER_ELEMENT) + 1)
-#define ATOMIC_BITMAP(name) atomic_t name[FLAGS_ARRAY_LEN((PM_PEER_ID_N_AVAILABLE_IDS))]
-
 typedef struct {
 	/** Bitmap designating which peer IDs are in use. */
-	ATOMIC_BITMAP(used_peer_ids);
+	ATOMIC_DEFINE(used_peer_ids, PM_PEER_ID_N_AVAILABLE_IDS);
 	/** Bitmap designating which peer IDs are marked for deletion. */
-	ATOMIC_BITMAP(deleted_peer_ids);
+	ATOMIC_DEFINE(deleted_peer_ids, PM_PEER_ID_N_AVAILABLE_IDS);
 } pi_t;
 
 static pi_t m_pi = {{0}, {0}};
@@ -39,7 +35,7 @@ void peer_id_init(void)
 
 static uint32_t find_and_set_flag(atomic_t *p_flags, uint32_t flag_count)
 {
-	for (uint32_t i = 0; i < FLAGS_ARRAY_LEN(flag_count); i++) {
+	for (uint32_t i = 0; i < ATOMIC_BITMAP_SIZE(flag_count); i++) {
 		uint32_t word = atomic_get(&p_flags[i]);
 		uint32_t inverted = ~word;
 
