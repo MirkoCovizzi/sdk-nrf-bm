@@ -65,19 +65,19 @@ static ble_gap_lesc_p256_pk_t *m_p_public_key;
 /* User flag indicating whether a connection has a pending call to @ref sm_link_secure because it
  * returned @ref NRF_ERROR_BUSY.
  */
-static int m_flag_link_secure_pending_busy = CONFIG_BLE_CONN_STATE_USER_FLAG_COUNT;
+static int m_flag_link_secure_pending_busy = BLE_CONN_STATE_USER_FLAG_INVALID;
 /* User flag indicating whether a pending call to @ref sm_link_secure should be called with true for
  * the force_repairing parameter.
  */
-static int m_flag_link_secure_force_repairing = CONFIG_BLE_CONN_STATE_USER_FLAG_COUNT;
+static int m_flag_link_secure_force_repairing = BLE_CONN_STATE_USER_FLAG_INVALID;
 /* User flag indicating whether a pending call to @ref sm_link_secure should be called with NULL
  * security parameters.
  */
-static int m_flag_link_secure_null_params = CONFIG_BLE_CONN_STATE_USER_FLAG_COUNT;
+static int m_flag_link_secure_null_params = BLE_CONN_STATE_USER_FLAG_INVALID;
 /* User flag indicating whether a connection has a pending call to @ref sm_sec_params_reply because
  * it returned @ref NRF_ERROR_BUSY.
  */
-static int m_flag_params_reply_pending_busy = CONFIG_BLE_CONN_STATE_USER_FLAG_COUNT;
+static int m_flag_params_reply_pending_busy = BLE_CONN_STATE_USER_FLAG_INVALID;
 
 /**
  * @brief Function for sending an SM event to all registered event handlers.
@@ -490,7 +490,7 @@ void sm_pdb_evt_handler(pm_evt_t *p_event)
  */
 static void flag_id_init(int *p_flag_id)
 {
-	if (*p_flag_id == CONFIG_BLE_CONN_STATE_USER_FLAG_COUNT) {
+	if (*p_flag_id == BLE_CONN_STATE_USER_FLAG_INVALID) {
 		*p_flag_id = ble_conn_state_user_flag_acquire();
 	}
 }
@@ -512,7 +512,7 @@ uint32_t sm_init(void)
 	flag_id_init(&m_flag_link_secure_null_params);
 	flag_id_init(&m_flag_params_reply_pending_busy);
 
-	if (m_flag_params_reply_pending_busy == CONFIG_BLE_CONN_STATE_USER_FLAG_COUNT) {
+	if (m_flag_params_reply_pending_busy == BLE_CONN_STATE_USER_FLAG_INVALID) {
 		LOG_ERR("Could not acquire conn_state user flags. Increase "
 			"BLE_CONN_STATE_USER_FLAG_COUNT in the ble_conn_state module.");
 		return NRF_ERROR_INTERNAL;

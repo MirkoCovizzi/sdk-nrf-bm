@@ -49,7 +49,7 @@ static pm_evt_handler_t m_evt_handlers[CONFIG_PM_MAX_REGISTRANTS];
 static uint8_t m_n_registrants;
 
 /** User flag indicating whether a connection is excluded from being handled by the Peer Manager. */
-static int m_flag_conn_excluded = CONFIG_BLE_CONN_STATE_USER_FLAG_COUNT;
+static int m_flag_conn_excluded = BLE_CONN_STATE_USER_FLAG_INVALID;
 
 /**
  * @brief Function for sending a Peer Manager event to all subscribers.

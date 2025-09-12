@@ -621,13 +621,13 @@ uint32_t gcm_init(void)
 	m_flag_car_handle_queried = ble_conn_state_user_flag_acquire();
 	m_flag_car_value_queried = ble_conn_state_user_flag_acquire();
 
-	if ((m_flag_local_db_update_pending == CONFIG_BLE_CONN_STATE_USER_FLAG_COUNT) ||
-	    (m_flag_local_db_apply_pending == CONFIG_BLE_CONN_STATE_USER_FLAG_COUNT) ||
-	    (m_flag_service_changed_pending == CONFIG_BLE_CONN_STATE_USER_FLAG_COUNT) ||
-	    (m_flag_service_changed_sent == CONFIG_BLE_CONN_STATE_USER_FLAG_COUNT) ||
-	    (m_flag_car_update_pending == CONFIG_BLE_CONN_STATE_USER_FLAG_COUNT) ||
-	    (m_flag_car_handle_queried == CONFIG_BLE_CONN_STATE_USER_FLAG_COUNT) ||
-	    (m_flag_car_value_queried == CONFIG_BLE_CONN_STATE_USER_FLAG_COUNT)) {
+	if ((m_flag_local_db_update_pending == BLE_CONN_STATE_USER_FLAG_INVALID) ||
+	    (m_flag_local_db_apply_pending == BLE_CONN_STATE_USER_FLAG_INVALID) ||
+	    (m_flag_service_changed_pending == BLE_CONN_STATE_USER_FLAG_INVALID) ||
+	    (m_flag_service_changed_sent == BLE_CONN_STATE_USER_FLAG_INVALID) ||
+	    (m_flag_car_update_pending == BLE_CONN_STATE_USER_FLAG_INVALID) ||
+	    (m_flag_car_handle_queried == BLE_CONN_STATE_USER_FLAG_INVALID) ||
+	    (m_flag_car_value_queried == BLE_CONN_STATE_USER_FLAG_INVALID)) {
 		LOG_ERR("Could not acquire conn_state user flags. Increase "
 			"BLE_CONN_STATE_USER_FLAG_COUNT in the ble_conn_state module.");
 		return NRF_ERROR_INTERNAL;
