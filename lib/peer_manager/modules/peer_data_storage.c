@@ -61,17 +61,29 @@ static void pds_evt_send(pm_evt_t *p_event)
 	}
 }
 
+#define ENTRY_ID_PEER_ID_OFFSET_BITS 16
+#define ENTRY_ID_DATA_ID_MASK        ((1 << ENTRY_ID_PEER_ID_OFFSET_BITS) - 1)
+
+/**
+ * @brief Pack the given peer_id and data_id into a single 32 bit entry_id.
+ *
+ * @p peer_id is stored in the most significant 16 bits.
+ * @p data_id is stored in the least significant 16 bits.
+ */
 static uint32_t peer_id_peer_data_id_to_entry_id(pm_peer_id_t peer_id,
 						 pm_peer_data_id_t data_id)
 {
-	return (peer_id * PM_PEER_DATA_ID_LAST) + data_id;
+	return (peer_id << ENTRY_ID_PEER_ID_OFFSET_BITS) | (data_id & ENTRY_ID_DATA_ID_MASK);
 }
 
+/**
+ * @brief Unpack the given entry_id into a peer_id and data_id.
+ */
 static void entry_id_to_peer_id_peer_data_id(uint32_t entry_id, pm_peer_id_t *peer_id,
 					     pm_peer_data_id_t *data_id)
 {
-	*data_id = entry_id % PM_PEER_DATA_ID_LAST;
-	*peer_id = entry_id / PM_PEER_DATA_ID_LAST;
+	*data_id = entry_id & ENTRY_ID_DATA_ID_MASK;
+	*peer_id = entry_id >> ENTRY_ID_PEER_ID_OFFSET_BITS;
 }
 
 #if CODE_DISABLED /* todo: this does not apply anymore. Find an alternative. Used in evt handler. */
