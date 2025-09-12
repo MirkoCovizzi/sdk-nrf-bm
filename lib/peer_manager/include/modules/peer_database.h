@@ -18,6 +18,7 @@
 
 #include <stdint.h>
 #include <bluetooth/peer_manager/peer_manager_types.h>
+#include <nrf_sdh_ble.h>
 #include "peer_manager_internal.h"
 
 #ifdef __cplusplus
@@ -33,14 +34,28 @@ extern "C" {
 #define PDB_WRITE_BUF_SIZE (sizeof(pm_peer_data_bonding_t))
 
 /**
- * @brief Macro for creating a peer ID value from a connection handle.
+ * @brief Function for creating a peer ID value from a connection handle.
  *
- * Use this macro with pdb_write_buf_get() or pdb_write_buf_store(). It allows to create a write
- * buffer even if you do not yet know the proper peer ID the data will be stored for.
+ * Use this function with pdb_write_buf_get() or pdb_write_buf_store(). It allows to create a
+ * write buffer even if you do not yet know the proper peer ID the data will be stored for.
  *
- * @return @p conn_handle + @ref PM_PEER_ID_N_AVAILABLE_IDS.
+ * @param[in]  conn_handle  The connection handle.
+ * @param[out] peer_id      Temporary peer ID.
+ *
+ * @retval NRF_SUCCESS              Temporary peer ID written to @p peer_id.
+ * @retval NRF_ERROR_INVALID_PARAM  Connection handle was invalid.
  */
-#define PDB_TEMP_PEER_ID(conn_handle) (PM_PEER_ID_N_AVAILABLE_IDS + conn_handle)
+static inline uint32_t pdb_temp_peer_id_get(uint16_t conn_handle, pm_peer_id_t *peer_id)
+{
+	const int idx = nrf_sdh_ble_idx_get(conn_handle);
+
+	if (idx < 0) {
+		return NRF_ERROR_INVALID_PARAM;
+	}
+
+	*peer_id = PM_PEER_ID_N_AVAILABLE_IDS + idx;
+	return NRF_SUCCESS;
+}
 
 /**
  * @brief Function for initializing the module.
@@ -102,8 +117,8 @@ uint32_t pdb_peer_data_ptr_get(pm_peer_id_t peer_id, pm_peer_data_id_t data_id,
  *
  * @param[in]  peer_id      ID of the peer to get a write buffer for. If @p peer_id is larger than
  *                          @ref PM_PEER_ID_N_AVAILABLE_IDS, it is interpreted as pertaining to
- *                          the connection with connection handle peer_id -
- * PM_PEER_ID_N_AVAILABLE_IDS. See @ref PDB_TEMP_PEER_ID.
+ *                          the connection that have been assigned idx (peer_id -
+ * PM_PEER_ID_N_AVAILABLE_IDS) using @ref nrf_sdh_ble_idx_get. See @ref pdb_temp_peer_id_get.
  * @param[in]  data_id      The piece of data to get.
  * @param[in]  n_bufs       Number of contiguous buffers needed.
  * @param[out] p_peer_data  Pointers to mutable peer data.

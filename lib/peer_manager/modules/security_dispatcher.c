@@ -161,8 +161,13 @@ static void pairing_failure(uint16_t conn_handle, pm_sec_error_code_t error, uin
 	uint32_t err_code = NRF_SUCCESS;
 	pm_conn_sec_procedure_t procedure = bonding(conn_handle) ? PM_CONN_SEC_PROCEDURE_BONDING
 								 : PM_CONN_SEC_PROCEDURE_PAIRING;
+	pm_peer_id_t temp_peer_id;
 
-	err_code = pdb_write_buf_release(PDB_TEMP_PEER_ID(conn_handle), PM_PEER_DATA_ID_BONDING);
+	err_code = pdb_temp_peer_id_get(conn_handle, &temp_peer_id);
+	if (err_code == NRF_SUCCESS) {
+		err_code = pdb_write_buf_release(temp_peer_id, PM_PEER_DATA_ID_BONDING);
+	}
+
 	if ((err_code != NRF_SUCCESS) &&
 	    (err_code != NRF_ERROR_NOT_FOUND /* No buffer was allocated */)) {
 		LOG_ERR("Could not clean up after failed bonding procedure. "
@@ -522,6 +527,7 @@ static void auth_status_success_process(ble_gap_evt_t const *p_gap_evt)
 	uint32_t err_code;
 	uint16_t conn_handle = p_gap_evt->conn_handle;
 	pm_peer_id_t peer_id;
+	pm_peer_id_t temp_peer_id;
 	pm_peer_data_t peer_data;
 	bool new_peer_id = false;
 
@@ -532,8 +538,11 @@ static void auth_status_success_process(ble_gap_evt_t const *p_gap_evt)
 		return;
 	}
 
-	err_code = pdb_write_buf_get(PDB_TEMP_PEER_ID(conn_handle), PM_PEER_DATA_ID_BONDING, 1,
-				     &peer_data);
+	err_code = pdb_temp_peer_id_get(conn_handle, &temp_peer_id);
+	if (err_code == NRF_SUCCESS) {
+		err_code = pdb_write_buf_get(temp_peer_id, PM_PEER_DATA_ID_BONDING, 1, &peer_data);
+	}
+
 	if (err_code != NRF_SUCCESS) {
 		LOG_ERR("RAM buffer for new bond was unavailable. pdb_write_buf_get() "
 			"returned %s. conn_handle: %d.",
@@ -576,8 +585,7 @@ static void auth_status_success_process(ble_gap_evt_t const *p_gap_evt)
 		new_peer_id = true;
 	}
 
-	err_code = pdb_write_buf_store(PDB_TEMP_PEER_ID(conn_handle), PM_PEER_DATA_ID_BONDING,
-				       peer_id);
+	err_code = pdb_write_buf_store(temp_peer_id, PM_PEER_DATA_ID_BONDING, peer_id);
 
 	if (err_code == NRF_SUCCESS) {
 		pairing_success_evt_send(p_gap_evt, true);
@@ -725,6 +733,7 @@ static uint32_t sec_keyset_fill(uint16_t conn_handle, uint8_t role,
 				ble_gap_sec_keyset_t *p_sec_keyset)
 {
 	uint32_t err_code;
+	pm_peer_id_t temp_peer_id;
 	pm_peer_data_t peer_data;
 
 	if (p_sec_keyset == NULL) {
@@ -732,9 +741,11 @@ static uint32_t sec_keyset_fill(uint16_t conn_handle, uint8_t role,
 		return NRF_ERROR_INTERNAL;
 	}
 
-	/* Acquire a memory buffer to receive bonding data into. */
-	err_code = pdb_write_buf_get(PDB_TEMP_PEER_ID(conn_handle), PM_PEER_DATA_ID_BONDING, 1,
-				     &peer_data);
+	err_code = pdb_temp_peer_id_get(conn_handle, &temp_peer_id);
+	if (err_code == NRF_SUCCESS) {
+		/* Acquire a memory buffer to receive bonding data into. */
+		err_code = pdb_write_buf_get(temp_peer_id, PM_PEER_DATA_ID_BONDING, 1, &peer_data);
+	}
 
 	if (err_code == NRF_ERROR_BUSY) {
 		/* No action. */
