@@ -14,6 +14,7 @@
 #include <bluetooth/services/ble_bas.h>
 #include <bluetooth/services/ble_dis.h>
 #include <bluetooth/services/ble_hrs.h>
+#include <bm_buttons.h>
 #include <bm_timer.h>
 #include <sensorsim.h>
 #include <zephyr/logging/log.h>
@@ -21,6 +22,8 @@
 #include <bluetooth/peer_manager/nrf_ble_lesc.h>
 #include <bluetooth/peer_manager/peer_manager.h>
 #include <bluetooth/peer_manager/peer_manager_handler.h>
+
+#include <board-config.h>
 
 LOG_MODULE_REGISTER(app, CONFIG_BLE_HRS_SAMPLE_LOG_LEVEL);
 
@@ -333,11 +336,40 @@ static void ble_hrs_evt_handler(struct ble_hrs *hrs, const struct ble_hrs_evt *e
 	}
 }
 
+static int buttons_init(bool *erase_bonds)
+{
+	int err;
+	const struct bm_buttons_config cfg[] = {
+		{
+			.pin_number = BOARD_PIN_BTN_1,
+			.active_state = BM_BUTTONS_ACTIVE_LOW,
+			.pull_config = BM_BUTTONS_PIN_PULLUP,
+			.handler = NULL,
+		},
+	};
+
+	err = bm_buttons_init(cfg, ARRAY_SIZE(cfg), BM_BUTTONS_DETECTION_DELAY_MIN_US);
+	if (err) {
+		return err;
+	}
+
+	err = bm_buttons_enable();
+	if (err) {
+		return err;
+	}
+
+	if (erase_bonds != NULL) {
+		*erase_bonds = bm_buttons_is_pressed(BOARD_PIN_BTN_1);
+	}
+
+	return 0;
+}
+
 static void delete_bonds(void)
 {
 	uint32_t err;
 
-	printk("Erase bonds!\n");
+	LOG_INF("Erase bonds!");
 
 	err = pm_peers_delete();
 	if (err) {
@@ -355,6 +387,8 @@ static void advertising_start(bool erase_bonds)
 		err = ble_adv_start(&ble_adv, BLE_ADV_MODE_FAST);
 		if (err) {
 			LOG_ERR("Failed to start advertising, err %d", err);
+		} else {
+			LOG_INF("Advertising as %s", CONFIG_BLE_ADV_NAME);
 		}
 	}
 }
@@ -420,6 +454,7 @@ static int peer_manager_init(void)
 int main(void)
 {
 	int err;
+	bool erase_bonds = false;
 	uint8_t body_sensor_location = BLE_HRS_BODY_SENSOR_LOCATION_FINGER;
 	ble_uuid_t adv_uuid_list[] = {
 		{ .uuid = BLE_UUID_HEART_RATE_SERVICE, .type = BLE_UUID_TYPE_BLE },
@@ -507,6 +542,12 @@ int main(void)
 		goto idle;
 	}
 
+	err = buttons_init(&erase_bonds);
+	if (err) {
+		LOG_ERR("Failed to initialize buttons, err %d", err);
+		goto idle;
+	}
+
 	err = ble_adv_init(&ble_adv, &ble_adv_cfg);
 	if (err) {
 		LOG_ERR("Failed to initialize advertising, err %d", err);
@@ -515,13 +556,7 @@ int main(void)
 
 	simulated_meas_start();
 
-	err = ble_adv_start(&ble_adv, BLE_ADV_MODE_FAST);
-	if (err) {
-		LOG_ERR("Failed to start advertising, err %d", err);
-		goto idle;
-	}
-
-	LOG_INF("Advertising as %s", CONFIG_BLE_ADV_NAME);
+	advertising_start(erase_bonds);
 
 idle:
 	while (true) {
