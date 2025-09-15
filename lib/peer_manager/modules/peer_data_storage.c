@@ -17,9 +17,9 @@
 #include <modules/peer_id.h>
 #include <modules/peer_data_storage.h>
 
-#define STORAGE_NODE DT_NODELABEL(storage1_partition)
-#define BM_ZMS_PARTITION_OFFSET DT_REG_ADDR(STORAGE_NODE)
-#define BM_ZMS_PARTITION_SIZE DT_REG_SIZE(STORAGE_NODE)
+#define PEER_MANAGER_NODE DT_NODELABEL(peer_manager_partition)
+#define PEER_MANAGER_PARTITION_OFFSET DT_REG_ADDR(PEER_MANAGER_NODE)
+#define PEER_MANAGER_PARTITION_SIZE DT_REG_SIZE(PEER_MANAGER_NODE)
 
 #define CODE_DISABLED 0
 
@@ -386,9 +386,9 @@ uint32_t pds_init(void)
 		return NRF_ERROR_INTERNAL;
 	}
 
-	fs.offset = BM_ZMS_PARTITION_OFFSET;
+	fs.offset = PEER_MANAGER_PARTITION_OFFSET;
 	fs.sector_size = CONFIG_PM_BM_ZMS_SECTOR_SIZE;
-	fs.sector_count = (BM_ZMS_PARTITION_SIZE / CONFIG_PM_BM_ZMS_SECTOR_SIZE);
+	fs.sector_count = (PEER_MANAGER_PARTITION_SIZE / CONFIG_PM_BM_ZMS_SECTOR_SIZE);
 
 	err = bm_zms_mount(&fs);
 	if (err) {
