@@ -224,16 +224,10 @@ static void simulated_meas_start(void)
 
 static void on_ble_evt(const ble_evt_t *evt, void *ctx)
 {
-	int err;
-
 	switch (evt->header.evt_id) {
 	case BLE_GAP_EVT_CONNECTED:
 		LOG_INF("Peer connected");
 		conn_handle = evt->evt.gap_evt.conn_handle;
-		err = sd_ble_gatts_sys_attr_set(conn_handle, NULL, 0, 0);
-		if (err) {
-			LOG_ERR("Failed to set system attributes, nrf_error %#x", err);
-		}
 		break;
 
 	case BLE_GAP_EVT_DISCONNECTED:
@@ -255,15 +249,6 @@ static void on_ble_evt(const ble_evt_t *evt, void *ctx)
 	case BLE_GAP_EVT_PASSKEY_DISPLAY:
 		LOG_INF("Passkey: %.*s", BLE_GAP_PASSKEY_LEN,
 			evt->evt.gap_evt.params.passkey_display.passkey);
-		break;
-
-	case BLE_GATTS_EVT_SYS_ATTR_MISSING:
-		LOG_INF("System attribute missing event");
-		/* No system attributes have been stored */
-		err = sd_ble_gatts_sys_attr_set(conn_handle, NULL, 0, 0);
-		if (err) {
-			LOG_ERR("Failed to set system attributes, nrf_error %#x", err);
-		}
 		break;
 	}
 }
