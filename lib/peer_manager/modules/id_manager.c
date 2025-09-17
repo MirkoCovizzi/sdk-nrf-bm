@@ -125,7 +125,7 @@ void im_ble_evt_handler(ble_evt_t const *ble_evt)
 
 	__ASSERT((idx >= 0) && (idx < IM_MAX_CONN_HANDLES),
 		 "Invalid idx %d for conn_handle %#x, evt_id %#x",
-		 idx, gap_evt.conn_handle, p_ble_evt->header.evt_id);
+		 idx, gap_evt.conn_handle, ble_evt->header.evt_id);
 
 	if (gap_evt.params.connected.peer_addr.addr_type !=
 	    BLE_GAP_ADDR_TYPE_RANDOM_PRIVATE_NON_RESOLVABLE) {
