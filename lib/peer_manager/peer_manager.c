@@ -825,8 +825,6 @@ uint32_t pm_peer_new(pm_peer_id_t *p_new_peer_id, pm_peer_data_bonding_t *p_bond
 	/* Search through existing bonds to look for a duplicate. */
 	pds_peer_data_iterate_prepare(&peer_id_iter);
 
-	/* @note This check is not thread safe since data is not copied while iterating. */
-	/* todo: update comment above. */
 	while (pds_peer_data_iterate(PM_PEER_DATA_ID_BONDING, &peer_id, &peer_data,
 		&peer_id_iter)) {
 		if (im_is_duplicate_bonding_data(p_bonding_data, peer_data.p_bonding_data)) {
