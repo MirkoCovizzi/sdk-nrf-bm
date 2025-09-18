@@ -185,8 +185,6 @@ static void peer_ids_load(void)
 	/* Search through existing bonds to look for a duplicate. */
 	pds_peer_data_iterate_prepare(&peer_id_iter);
 
-	/* @note This check is not thread safe since data is not copied while iterating. */
-	/* todo: update comment above. */
 	while (pds_peer_data_iterate(PM_PEER_DATA_ID_BONDING, &peer_id, &peer_data,
 		&peer_id_iter)) {
 		(void)peer_id_allocate(peer_id);
